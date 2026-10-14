@@ -1,0 +1,93 @@
+"use client";
+
+import { Heart, ShoppingCart, TrendingUp } from "lucide-react";
+import { useStore } from "@/context/StoreContext";
+import { formatPrice } from "@/data/products";
+import type { Product } from "@/types";
+import StarRating from "./StarRating";
+
+interface Props {
+  product: Product;
+  variant?: "horizontal" | "vertical";
+}
+
+function Price({ price, oldPrice }: { price: number; oldPrice?: number }) {
+  return (
+    <p className="flex flex-wrap items-baseline gap-2">
+      <span className="text-lg font-bold text-accent-ink">{formatPrice(price)}</span>
+      {oldPrice && (
+        <span className="text-sm text-muted line-through">
+          <span className="sr-only">was </span>
+          {formatPrice(oldPrice)}
+        </span>
+      )}
+    </p>
+  );
+}
+
+function WishlistButton({ product }: { product: Product }) {
+  const { wishlist, toggleWishlist } = useStore();
+  const saved = wishlist.has(product.id);
+  return (
+    <button
+      type="button"
+      aria-pressed={saved}
+      aria-label={saved ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+      onClick={() => toggleWishlist(product.id)}
+      className="absolute top-3 right-3 flex size-10 items-center justify-center rounded-full bg-bg/90 shadow-soft transition hover:scale-105"
+    >
+      <Heart className={`size-5 transition ${saved ? "fill-sale text-sale" : "text-muted"}`} aria-hidden />
+    </button>
+  );
+}
+
+function AddToCart({ product, compact }: { product: Product; compact?: boolean }) {
+  const { addToCart } = useStore();
+  return (
+    <button
+      type="button"
+      onClick={() => addToCart(product.id)}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-accent px-4 text-sm font-semibold text-on-accent transition hover:bg-accent-hover active:scale-[0.98] ${compact ? "w-full" : ""}`}
+    >
+      <ShoppingCart className="size-4" aria-hidden />
+      Add to Cart
+    </button>
+  );
+}
+
+export default function ProductCard({ product, variant = "vertical" }: Props) {
+  if (variant === "horizontal") {
+    return (
+      <article className="relative flex min-w-0 items-center gap-4 rounded-card bg-bg p-3 pt-8 shadow-soft transition duration-300 hover:-translate-y-0.5 hover:shadow-lift sm:gap-5 sm:p-5">
+        <span className="absolute top-0 left-0 z-10 inline-flex items-center gap-1 rounded-tl-card rounded-br-control bg-sale px-3 py-1 text-xs font-semibold text-on-primary">
+          <TrendingUp className="size-3.5" aria-hidden /> Trending
+        </span>
+        <div className={`relative aspect-square w-28 shrink-0 rounded-control sm:w-40 lg:w-44 bg-${product.gradient}`}>
+          <WishlistButton product={product} />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <h3 className="text-sm font-semibold text-text sm:text-lg">{product.name}</h3>
+          <StarRating rating={product.rating} reviews={product.reviews} />
+          <Price price={product.price} oldPrice={product.oldPrice} />
+          <div className="mt-1">
+            <AddToCart product={product} />
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  return (
+    <article className="flex min-w-0 flex-col gap-3 rounded-card bg-bg p-3 shadow-soft transition duration-300 hover:-translate-y-1 hover:shadow-lift sm:p-4">
+      <div className={`relative aspect-square w-full rounded-control bg-${product.gradient}`}>
+        <WishlistButton product={product} />
+      </div>
+      <h3 className="line-clamp-2 min-h-[2.5em] text-sm font-semibold text-text sm:text-base">{product.name}</h3>
+      <StarRating rating={product.rating} reviews={product.reviews} />
+      <Price price={product.price} oldPrice={product.oldPrice} />
+      <div className="mt-auto">
+        <AddToCart product={product} compact />
+      </div>
+    </article>
+  );
+}

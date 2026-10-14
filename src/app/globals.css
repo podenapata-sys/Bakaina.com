@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/*
+ * BAKAINA theme tokens — the ONLY place colours, radii and shadows are defined.
+ * Swap these values to re-brand the whole store. Components use the
+ * Tailwind utilities generated below (bg-primary, text-muted, rounded-card …).
+ */
+:root {
+  /* Brand */
+  --brand-primary: #0b2a66; /* navy from the logo */
+  --brand-primary-hover: #13398a;
+  --brand-on-primary: #ffffff;
+  --brand-accent: #f5821f; /* orange from the logo */
+  --brand-accent-hover: #e8730f;
+  --brand-on-accent: #141414; /* white on this orange fails contrast */
+  --brand-accent-ink: #a84f05; /* orange that is readable as text on white */
+
+  /* Neutrals */
+  --ui-bg: #ffffff;
+  --ui-surface: #f7f7f5;
+  --ui-text: #2b2b2b;
+  --ui-muted: #666666;
+  --ui-border: #e7e5e0;
+  --ui-sale: #d42a1e;
+  --ui-star: #f2a516;
+
+  /* Shape */
+  --ui-radius-card: 16px;
+  --ui-radius-control: 12px;
+  --ui-shadow-soft: 0 1px 2px rgb(20 20 20 / 0.04), 0 8px 24px rgb(20 20 20 / 0.06);
+  --ui-shadow-lift: 0 2px 4px rgb(20 20 20 / 0.06), 0 16px 32px rgb(20 20 20 / 0.1);
+
+  /* Placeholder image gradients (replace with real photos later) */
+  --grad-1: linear-gradient(135deg, #fde8d7 0%, #f9c9a5 100%);
+  --grad-2: linear-gradient(135deg, #e3eaf6 0%, #b9c9e8 100%);
+  --grad-3: linear-gradient(135deg, #fbe3ea 0%, #f4bccb 100%);
+  --grad-4: linear-gradient(135deg, #e7f2e4 0%, #c3dfbb 100%);
+  --grad-5: linear-gradient(135deg, #fff4d6 0%, #fbe0a0 100%);
+  --grad-6: linear-gradient(135deg, #ece6f7 0%, #cfc2ec 100%);
+  --grad-hero-2: linear-gradient(120deg, #0b2a66 0%, #1d4fa8 100%);
+  --grad-hero-3: linear-gradient(120deg, #fde8d7 0%, #f9c9a5 100%);
+  --grad-side-1: linear-gradient(120deg, #e3eaf6 0%, #c6d4ee 100%);
+  --grad-side-2: linear-gradient(120deg, #fff1e3 0%, #fbd3ad 100%);
+  --grad-promo: linear-gradient(100deg, #0b2a66 0%, #16408f 70%, #1d4fa8 100%);
+}
+
+@theme inline {
+  --color-primary: var(--brand-primary);
+  --color-primary-hover: var(--brand-primary-hover);
+  --color-on-primary: var(--brand-on-primary);
+  --color-accent: var(--brand-accent);
+  --color-accent-hover: var(--brand-accent-hover);
+  --color-on-accent: var(--brand-on-accent);
+  --color-accent-ink: var(--brand-accent-ink);
+  --color-bg: var(--ui-bg);
+  --color-surface: var(--ui-surface);
+  --color-text: var(--ui-text);
+  --color-muted: var(--ui-muted);
+  --color-line: var(--ui-border);
+  --color-sale: var(--ui-sale);
+  --color-star: var(--ui-star);
+  --radius-card: var(--ui-radius-card);
+  --radius-control: var(--ui-radius-control);
+  --shadow-soft: var(--ui-shadow-soft);
+  --shadow-lift: var(--ui-shadow-lift);
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  overflow-x: clip;
+}
+
+/* Placeholder gradient backgrounds, keyed by token name */
+.bg-grad-1 { background-image: var(--grad-1); }
+.bg-grad-2 { background-image: var(--grad-2); }
+.bg-grad-3 { background-image: var(--grad-3); }
+.bg-grad-4 { background-image: var(--grad-4); }
+.bg-grad-5 { background-image: var(--grad-5); }
+.bg-grad-6 { background-image: var(--grad-6); }
+.bg-grad-hero-2 { background-image: var(--grad-hero-2); }
+.bg-grad-hero-3 { background-image: var(--grad-hero-3); }
+.bg-grad-side-1 { background-image: var(--grad-side-1); }
+.bg-grad-side-2 { background-image: var(--grad-side-2); }
+.bg-grad-promo { background-image: var(--grad-promo); }
+
+/* Hide scrollbar on the mobile category scroller */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

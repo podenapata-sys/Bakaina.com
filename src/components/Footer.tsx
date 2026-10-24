@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Mail, MessageCircle, Phone } from "lucide-react";
+import FooterLogo from "./FooterLogo";
 import NewsletterForm from "./NewsletterForm";
 
 const quickLinks = ["Shop all", "New arrivals", "Best sellers", "Offers"];
@@ -31,12 +31,7 @@ export default function Footer() {
     <footer className="bg-primary text-on-primary">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div className="flex flex-col gap-4">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="rounded-control bg-bg p-1">
-              <Image src="/logo.jpg" alt="" width={36} height={36} className="size-9 object-contain" />
-            </span>
-            <span className="text-xl font-bold tracking-wide">BAKAINA</span>
-          </Link>
+          <FooterLogo />
           <p className="text-sm leading-relaxed opacity-85">
             Global products, trusted quality. Trending products delivered across Bangladesh.
           </p>

@@ -47,6 +47,33 @@ function SetupNotice() {
   );
 }
 
+/** Turns Firebase Auth error codes into something the store owner can act on. */
+function loginErrorMessage(err: unknown): string {
+  const code = typeof err === "object" && err && "code" in err ? String((err as { code: unknown }).code) : "";
+  switch (code) {
+    case "auth/invalid-credential":
+    case "auth/wrong-password":
+    case "auth/user-not-found":
+    case "auth/invalid-email":
+      return "Wrong email or password.";
+    case "auth/too-many-requests":
+      return "Too many attempts. Wait a few minutes, or reset the password in Firebase.";
+    case "auth/operation-not-allowed":
+      return "Email/Password sign-in is turned off. Enable it in Firebase → Authentication → Sign-in method.";
+    case "auth/user-disabled":
+      return "This account is disabled in Firebase → Authentication → Users.";
+    case "auth/network-request-failed":
+      return "No connection to Firebase. Check your internet and try again.";
+    case "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
+    case "auth/invalid-api-key":
+      return "The Firebase API key is wrong. Check NEXT_PUBLIC_FIREBASE_API_KEY in Vercel, then redeploy.";
+    case "auth/configuration-not-found":
+      return "Firebase Authentication is not set up. Open Authentication → Get started in Firebase.";
+    default:
+      return `Sign-in failed (${code || "unknown error"}).`;
+  }
+}
+
 function LoginForm() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -61,8 +88,8 @@ function LoginForm() {
           setError("");
           try {
             await signInWithEmailAndPassword(auth(), String(form.get("email")), String(form.get("password")));
-          } catch {
-            setError("Wrong email or password.");
+          } catch (err) {
+            setError(loginErrorMessage(err));
           } finally {
             setBusy(false);
           }

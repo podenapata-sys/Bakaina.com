@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { productTabs, products } from "@/data/products";
+import { useCatalog } from "@/context/CatalogContext";
+import { productTabs } from "@/data/products";
 import type { ProductTag } from "@/types";
 import ProductCard from "./ProductCard";
 import SectionHeading from "./SectionHeading";
 
 export default function OurProducts() {
   const [active, setActive] = useState<ProductTag>("special");
-  const visible = products.filter((p) => p.tag === active);
+  const { products } = useCatalog();
+  const visible = products.filter((p) => p.tag === active).slice(0, 8);
 
   return (
     <section id="products" aria-labelledby="products-heading" className="mx-auto max-w-7xl px-4 py-16">

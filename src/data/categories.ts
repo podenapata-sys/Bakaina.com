@@ -1,10 +1,10 @@
-import { Droplets, FlaskConical, Scissors, Sparkles, Sun } from "lucide-react";
 import type { Category } from "@/types";
 
-export const categories: Category[] = [
-  { id: "cleansers", name: "Cleansers", icon: Droplets, gradient: "grad-2" },
-  { id: "moisturizers", name: "Moisturizers", icon: Sparkles, gradient: "grad-3" },
-  { id: "serums", name: "Serums", icon: FlaskConical, gradient: "grad-6" },
-  { id: "sunscreen", name: "Sunscreen", icon: Sun, gradient: "grad-5" },
-  { id: "hair-care", name: "Hair Care", icon: Scissors, gradient: "grad-4" },
+/** Sample categories — used until Firebase is connected, and as seed data. */
+export const sampleCategories: Category[] = [
+  { id: "gadgets", name: "Gadgets", icon: "gadgets", gradient: "grad-2", order: 1 },
+  { id: "home-kitchen", name: "Home & Kitchen", icon: "home", gradient: "grad-1", order: 2 },
+  { id: "fashion", name: "Fashion", icon: "fashion", gradient: "grad-3", order: 3 },
+  { id: "beauty-care", name: "Beauty & Care", icon: "beauty", gradient: "grad-6", order: 4 },
+  { id: "phone-accessories", name: "Phone Accessories", icon: "phone", gradient: "grad-4", order: 5 },
 ];

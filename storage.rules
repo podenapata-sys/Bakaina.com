@@ -1,0 +1,21 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Admin emails allowed to upload product photos. Use the same email(s) as the
+    // admins/{uid} documents in Firestore (see docs/FIREBASE_SETUP.md, step 4).
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email in ['ADMIN_EMAIL_HERE'];
+    }
+
+    match /products/{productId}/{file} {
+      allow read: if true;
+      // Uploads must be images under 5 MB. Deletes have no request.resource.
+      allow write: if isAdmin()
+        && (request.resource == null
+          || (request.resource.size < 5 * 1024 * 1024
+            && request.resource.contentType.matches('image/.*')));
+    }
+  }
+}

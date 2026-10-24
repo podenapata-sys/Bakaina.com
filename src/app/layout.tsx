@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import { CatalogProvider } from "@/context/CatalogContext";
 import { StoreProvider } from "@/context/StoreContext";
 import "./globals.css";
 
@@ -10,15 +11,17 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "BAKAINA — Skincare & Beauty",
-  description: "Global products, trusted quality. Skincare and beauty delivered across Bangladesh.",
+  title: "BAKAINA — Trending Products Online",
+  description: "Global products, trusted quality. Trending products delivered across Bangladesh.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${poppins.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
-        <StoreProvider>{children}</StoreProvider>
+        <CatalogProvider>
+          <StoreProvider>{children}</StoreProvider>
+        </CatalogProvider>
       </body>
     </html>
   );

@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { Heart, ShoppingCart, TrendingUp } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/data/products";
 import type { Product } from "@/types";
+import ProductImage from "./ProductImage";
 import StarRating from "./StarRating";
 
 interface Props {
@@ -41,16 +43,18 @@ function WishlistButton({ product }: { product: Product }) {
   );
 }
 
-function AddToCart({ product, compact }: { product: Product; compact?: boolean }) {
+export function AddToCart({ product, compact }: { product: Product; compact?: boolean }) {
   const { addToCart } = useStore();
+  const soldOut = product.stock <= 0;
   return (
     <button
       type="button"
+      disabled={soldOut}
       onClick={() => addToCart(product.id)}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-accent px-4 text-sm font-semibold text-on-accent transition hover:bg-accent-hover active:scale-[0.98] ${compact ? "w-full" : ""}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-accent px-4 text-sm font-semibold text-on-accent transition hover:bg-accent-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-line disabled:text-muted ${compact ? "w-full" : ""}`}
     >
       <ShoppingCart className="size-4" aria-hidden />
-      Add to Cart
+      {soldOut ? "Sold out" : "Add to Cart"}
     </button>
   );
 }
@@ -62,11 +66,16 @@ export default function ProductCard({ product, variant = "vertical" }: Props) {
         <span className="absolute top-0 left-0 z-10 inline-flex items-center gap-1 rounded-tl-card rounded-br-control bg-sale px-3 py-1 text-xs font-semibold text-on-primary">
           <TrendingUp className="size-3.5" aria-hidden /> Trending
         </span>
-        <div className={`relative aspect-square w-28 shrink-0 rounded-control sm:w-40 lg:w-44 bg-${product.gradient}`}>
+        <div className="relative aspect-square w-28 shrink-0 sm:w-40 lg:w-44">
+          <Link href={`/product/${product.id}`} aria-label={product.name} tabIndex={-1}>
+            <ProductImage product={product} sizes="176px" className="size-full rounded-control" />
+          </Link>
           <WishlistButton product={product} />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <h3 className="text-sm font-semibold text-text sm:text-lg">{product.name}</h3>
+          <h3 className="text-sm font-semibold text-text sm:text-lg">
+            <Link href={`/product/${product.id}`} className="hover:text-primary">{product.name}</Link>
+          </h3>
           <StarRating rating={product.rating} reviews={product.reviews} />
           <Price price={product.price} oldPrice={product.oldPrice} />
           <div className="mt-1">
@@ -79,10 +88,15 @@ export default function ProductCard({ product, variant = "vertical" }: Props) {
 
   return (
     <article className="flex min-w-0 flex-col gap-3 rounded-card bg-bg p-3 shadow-soft transition duration-300 hover:-translate-y-1 hover:shadow-lift sm:p-4">
-      <div className={`relative aspect-square w-full rounded-control bg-${product.gradient}`}>
+      <div className="relative aspect-square w-full">
+        <Link href={`/product/${product.id}`} aria-label={product.name} tabIndex={-1}>
+          <ProductImage product={product} sizes="(min-width: 1024px) 25vw, 50vw" className="size-full rounded-control" />
+        </Link>
         <WishlistButton product={product} />
       </div>
-      <h3 className="line-clamp-2 min-h-[2.5em] text-sm font-semibold text-text sm:text-base">{product.name}</h3>
+      <h3 className="line-clamp-2 min-h-[2.5em] text-sm font-semibold text-text sm:text-base">
+        <Link href={`/product/${product.id}`} className="hover:text-primary">{product.name}</Link>
+      </h3>
       <StarRating rating={product.rating} reviews={product.reviews} />
       <Price price={product.price} oldPrice={product.oldPrice} />
       <div className="mt-auto">

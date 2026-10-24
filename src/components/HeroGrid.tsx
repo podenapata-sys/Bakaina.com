@@ -20,22 +20,22 @@ const slides: Slide[] = [
     bg: "bg-grad-hero-2",
     tone: "dark",
     eyebrow: "New arrivals",
-    title: "Glow starts with the right serum",
-    text: "Vitamin C, niacinamide and hyaluronic acid serums for every skin type.",
+    title: "This week's trending gadgets",
+    text: "Earbuds, ring lights, neck fans and more — the products everyone is ordering.",
   },
   {
     kind: "text",
     bg: "bg-grad-hero-3",
     tone: "light",
-    eyebrow: "Sun care week",
-    title: "Daily SPF 50 for Bangladeshi summers",
-    text: "Lightweight, no white cast. Protect your skin every single day.",
+    eyebrow: "Cash on delivery",
+    title: "Order now, pay when it arrives",
+    text: "Delivery all over Bangladesh. Check your product before you pay.",
   },
 ];
 
 const sideBanners = [
-  { bg: "bg-grad-side-1", title: "Hydration Heroes", text: "Moisturizers for oily & dry skin", cta: "Shop moisturizers" },
-  { bg: "bg-grad-side-2", title: "Hair Care Edit", text: "Oils, shampoos and masks", cta: "Shop hair care" },
+  { bg: "bg-grad-side-1", title: "Gadget Deals", text: "Smart finds for everyday life", cta: "Shop gadgets", href: "/shop?category=gadgets" },
+  { bg: "bg-grad-side-2", title: "Home & Kitchen", text: "Trending items for your home", cta: "Shop home", href: "/shop?category=home-kitchen" },
 ];
 
 export default function HeroGrid() {
@@ -88,7 +88,7 @@ export default function HeroGrid() {
                   <h2 className="text-2xl leading-tight font-bold sm:text-4xl">{slide.title}</h2>
                   <p className="mt-3 hidden text-sm opacity-90 sm:block sm:text-base">{slide.text}</p>
                   <Link
-                    href="#products"
+                    href="/shop"
                     className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
                   >
                     Shop Now <ArrowRight className="size-4" aria-hidden />
@@ -138,7 +138,7 @@ export default function HeroGrid() {
               <h3 className="text-xl font-bold text-primary">{b.title}</h3>
               <p className="mt-1 text-sm text-muted">{b.text}</p>
               <Link
-                href="#categories"
+                href={b.href}
                 className="mt-4 inline-flex min-h-11 w-fit items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
               >
                 {b.cta} <ArrowRight className="size-4" aria-hidden />

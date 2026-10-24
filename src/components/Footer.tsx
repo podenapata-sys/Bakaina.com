@@ -38,7 +38,7 @@ export default function Footer() {
             <span className="text-xl font-bold tracking-wide">BAKAINA</span>
           </Link>
           <p className="text-sm leading-relaxed opacity-85">
-            Global products, trusted quality. Authentic skincare and beauty, delivered across Bangladesh.
+            Global products, trusted quality. Trending products delivered across Bangladesh.
           </p>
           <div className="flex gap-2">
             <SocialIcon label="Facebook" path="M14 8h3V4h-3c-2.8 0-4 1.7-4 4.3V10H7v4h3v8h4v-8h3l1-4h-4V8.5c0-.3.2-.5.5-.5z" />

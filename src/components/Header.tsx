@@ -2,19 +2,30 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
-import { categories } from "@/data/categories";
+import { useCatalog } from "@/context/CatalogContext";
 
 function SearchForm({ id }: { id: string }) {
+  const router = useRouter();
   return (
-    <form role="search" className="relative w-full" onSubmit={(e) => e.preventDefault()}>
+    <form
+      role="search"
+      className="relative w-full"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const q = new FormData(e.currentTarget).get("q")?.toString().trim() ?? "";
+        router.push(q ? `/shop?q=${encodeURIComponent(q)}` : "/shop");
+      }}
+    >
       <label htmlFor={id} className="sr-only">
         Search products
       </label>
       <input
         id={id}
+        name="q"
         type="search"
         placeholder="Search for your favourite products…"
         className="h-12 w-full rounded-full border border-line bg-surface pr-14 pl-5 text-sm text-text outline-none transition placeholder:text-muted focus:border-primary focus:bg-bg"
@@ -50,6 +61,7 @@ function CartButton({ count }: { count: number }) {
 
 export default function Header() {
   const { cartCount, wishlist } = useStore();
+  const { categories } = useCatalog();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
@@ -144,10 +156,17 @@ export default function Header() {
             </div>
             <nav aria-label="Categories" className="flex flex-col gap-1">
               <p className="mb-1 text-xs font-semibold tracking-wider text-muted uppercase">Shop by category</p>
+              <Link
+                href="/shop"
+                onClick={() => setDrawerOpen(false)}
+                className="rounded-control px-3 py-2.5 font-medium transition hover:bg-surface hover:text-primary"
+              >
+                All products
+              </Link>
               {categories.map((c) => (
                 <Link
                   key={c.id}
-                  href="#categories"
+                  href={`/shop?category=${c.id}`}
                   onClick={() => setDrawerOpen(false)}
                   className="rounded-control px-3 py-2.5 font-medium transition hover:bg-surface hover:text-primary"
                 >

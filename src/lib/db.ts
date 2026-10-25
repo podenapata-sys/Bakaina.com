@@ -14,6 +14,7 @@ import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage
 import { sampleCategories } from "@/data/categories";
 import { sampleProducts } from "@/data/products";
 import type { Category, Order, OrderStatus, Product, ProductPrivate } from "@/types";
+import { isCloudinaryConfigured, uploadToCloudinary } from "./cloudinary";
 import { db, isFirebaseConfigured, storage } from "./firebase";
 
 /*
@@ -78,8 +79,10 @@ export async function saveProduct(product: Product): Promise<void> {
 export async function deleteProduct(product: Product): Promise<void> {
   await deleteDoc(doc(db(), "products", product.id));
   await deleteDoc(doc(db(), "productPrivate", product.id));
-  // Best-effort image cleanup; a missing file must not block the delete.
-  await Promise.allSettled(product.images.map((url) => deleteObject(ref(storage(), url))));
+  // Best-effort cleanup of Firebase Storage photos. Cloudinary photos stay in the
+  // Cloudinary Media Library (unsigned uploads cannot delete); remove them there if needed.
+  const firebasePhotos = product.images.filter((url) => url.includes("firebasestorage"));
+  await Promise.allSettled(firebasePhotos.map((url) => deleteObject(ref(storage(), url))));
 }
 
 export async function fetchProductPrivate(id: string): Promise<ProductPrivate> {
@@ -97,7 +100,9 @@ export async function saveProductPrivate(id: string, data: ProductPrivate): Prom
   await setDoc(doc(db(), "productPrivate", id), clean(data) as ProductPrivate);
 }
 
+/** Uploads to Cloudinary when configured (free, no billing account), else Firebase Storage. */
 export async function uploadProductImage(productId: string, file: File): Promise<string> {
+  if (isCloudinaryConfigured) return uploadToCloudinary(file, `bakaina/products/${productId}`);
   const safeName = file.name.replace(/[^\w.-]+/g, "_");
   const fileRef = ref(storage(), `products/${productId}/${Date.now()}-${safeName}`);
   await uploadBytes(fileRef, file, { contentType: file.type });

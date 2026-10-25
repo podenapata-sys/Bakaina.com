@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/SmartImage";
 import { useEffect, useState } from "react";
 import { ChevronDown, ImagePlus, Plus, Trash2, X } from "lucide-react";
 import { formatPrice, productTabs } from "@/data/products";

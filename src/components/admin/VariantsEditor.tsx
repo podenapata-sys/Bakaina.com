@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/SmartImage";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { generateVariants, usableOptions, variantLabel } from "@/lib/variants";

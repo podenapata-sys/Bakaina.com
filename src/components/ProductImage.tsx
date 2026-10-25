@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/SmartImage";
 import type { Product } from "@/types";
 
 /** The product's first photo, or its gradient placeholder until a photo is uploaded. */

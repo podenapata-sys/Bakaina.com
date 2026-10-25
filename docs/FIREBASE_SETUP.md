@@ -17,7 +17,13 @@ One-time setup, about 20 minutes. Do it in the client's Google account so they o
 ## 3. Connect the website
 1. **Project settings (gear icon) → Your apps → Web (`</>`)** → register an app called `bakaina-web`.
 2. Copy the six config values into Vercel → Project → **Settings → Environment Variables**, using the names in `.env.example`.
-3. **Deployments → … → Redeploy.**
+3. **Deployments → … → Redeploy**, with **Use existing Build Cache** unticked.
+
+Things that tripped us up the first time:
+- **Vercel bakes `NEXT_PUBLIC_*` values into the site at build time.** Changing a variable does nothing until you redeploy.
+- **Paste values with no quotes and no spaces**: `AIza...`, not `"AIza..."`.
+- **Shared (team) variables** only apply if they are linked to the `bakaina-com` project. Check that they appear under the project's own **Settings → Environment Variables**.
+- **If the admin login says "The Firebase API key is wrong":** open DevTools → Network, sign in, and compare the `key=` in the `accounts:signInWithPassword` request with the key in Firebase → Project settings. If they match, check Google Cloud → APIs & Services → Credentials → the browser key's application and API restrictions.
 
 For local development, copy `.env.example` to `.env.local` and fill in the same values.
 

@@ -1,6 +1,7 @@
 import { cacheLife } from "next/cache";
 import { sampleProducts } from "@/data/products";
 import type { Product } from "@/types";
+import { firebaseConfig } from "./firebase";
 import { priceRange, totalStock } from "./variants";
 
 /*
@@ -36,8 +37,7 @@ export async function getProductForSeo(id: string): Promise<Product | null> {
   "use cache";
   cacheLife("minutes");
 
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  const { projectId, apiKey } = firebaseConfig;
   if (!projectId || !apiKey) return sampleProducts.find((p) => p.id === id) ?? null;
   if (!/^[\w-]{1,128}$/.test(id)) return null;
 

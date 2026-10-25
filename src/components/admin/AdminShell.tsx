@@ -66,7 +66,7 @@ function loginErrorMessage(err: unknown): string {
       return "No connection to Firebase. Check your internet and try again.";
     case "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
     case "auth/invalid-api-key":
-      return "The Firebase API key is wrong. Check NEXT_PUBLIC_FIREBASE_API_KEY in Vercel, then redeploy.";
+      return "Login service error (invalid API key). Contact the developer.";
     case "auth/configuration-not-found":
       return "Firebase Authentication is not set up. Open Authentication → Get started in Firebase.";
     default:

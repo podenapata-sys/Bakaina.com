@@ -13,7 +13,8 @@ import {
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { sampleCategories } from "@/data/categories";
 import { sampleProducts } from "@/data/products";
-import type { Category, Order, OrderStatus, Product } from "@/types";
+import type { Category, Order, OrderStatus, Product, ProductPrivate } from "@/types";
+import { isCloudinaryConfigured, uploadToCloudinary } from "./cloudinary";
 import { db, isFirebaseConfigured, storage } from "./firebase";
 
 /*
@@ -21,17 +22,31 @@ import { db, isFirebaseConfigured, storage } from "./firebase";
  *   products/{id}    Product (without id)
  *   categories/{id}  Category (without id)
  *   orders/{id}      Order (without id)
+ *   productPrivate/{id}  ProductPrivate — admin-only (buying price), kept out of the public product
  *   admins/{uid}     { email } — marks a user as an admin (see firestore.rules)
  */
 
 const withId = <T>(id: string, data: object) => ({ ...data, id }) as T;
 
-/** Removes the id (it is the document key) and undefined fields, which Firestore rejects. */
+/** Deep-removes undefined values, which Firestore rejects at any depth. */
+function clean(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(clean);
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (v === undefined) continue;
+      out[k] = clean(v);
+    }
+    return out;
+  }
+  return value;
+}
+
+/** Removes the id (it is the document key) and anything Firestore would reject. */
 function stripId<T extends { id: string }>(item: T): Omit<T, "id"> {
   const rest: Record<string, unknown> = { ...item };
   delete rest.id;
-  for (const key of Object.keys(rest)) if (rest[key] === undefined) delete rest[key];
-  return rest as Omit<T, "id">;
+  return clean(rest) as Omit<T, "id">;
 }
 
 // ---------- Catalogue (public read) ----------
@@ -63,11 +78,31 @@ export async function saveProduct(product: Product): Promise<void> {
 
 export async function deleteProduct(product: Product): Promise<void> {
   await deleteDoc(doc(db(), "products", product.id));
-  // Best-effort image cleanup; a missing file must not block the delete.
-  await Promise.allSettled(product.images.map((url) => deleteObject(ref(storage(), url))));
+  await deleteDoc(doc(db(), "productPrivate", product.id));
+  // Best-effort cleanup of Firebase Storage photos. Cloudinary photos stay in the
+  // Cloudinary Media Library (unsigned uploads cannot delete); remove them there if needed.
+  const firebasePhotos = product.images.filter((url) => url.includes("firebasestorage"));
+  await Promise.allSettled(firebasePhotos.map((url) => deleteObject(ref(storage(), url))));
 }
 
+export async function fetchProductPrivate(id: string): Promise<ProductPrivate> {
+  const snap = await getDoc(doc(db(), "productPrivate", id));
+  return snap.exists() ? (snap.data() as ProductPrivate) : {};
+}
+
+export async function fetchAllProductPrivate(): Promise<Record<string, ProductPrivate>> {
+  if (!isFirebaseConfigured) return {};
+  const snap = await getDocs(collection(db(), "productPrivate"));
+  return Object.fromEntries(snap.docs.map((d) => [d.id, d.data() as ProductPrivate]));
+}
+
+export async function saveProductPrivate(id: string, data: ProductPrivate): Promise<void> {
+  await setDoc(doc(db(), "productPrivate", id), clean(data) as ProductPrivate);
+}
+
+/** Uploads to Cloudinary when configured (free, no billing account), else Firebase Storage. */
 export async function uploadProductImage(productId: string, file: File): Promise<string> {
+  if (isCloudinaryConfigured) return uploadToCloudinary(file, `bakaina/products/${productId}`);
   const safeName = file.name.replace(/[^\w.-]+/g, "_");
   const fileRef = ref(storage(), `products/${productId}/${Date.now()}-${safeName}`);
   await uploadBytes(fileRef, file, { contentType: file.type });
@@ -115,11 +150,18 @@ export interface Backup {
   products: Product[];
   categories: Category[];
   orders: Order[];
+  /** Buying prices etc., keyed by product id. Missing in backups made before it existed. */
+  productPrivate?: Record<string, ProductPrivate>;
 }
 
 export async function exportBackup(): Promise<Backup> {
-  const [products, categories, orders] = await Promise.all([fetchProducts(), fetchCategories(), fetchOrders()]);
-  return { exportedAt: new Date().toISOString(), products, categories, orders };
+  const [products, categories, orders, productPrivate] = await Promise.all([
+    fetchProducts(),
+    fetchCategories(),
+    fetchOrders(),
+    fetchAllProductPrivate(),
+  ]);
+  return { exportedAt: new Date().toISOString(), products, categories, orders, productPrivate };
 }
 
 /** Restores products and categories from a backup file. Orders are never overwritten. */
@@ -127,6 +169,7 @@ export async function restoreCatalog(backup: Backup): Promise<number> {
   const items = [
     ...backup.categories.map((c) => ({ path: "categories", id: c.id, data: stripId(c) })),
     ...backup.products.map((p) => ({ path: "products", id: p.id, data: stripId(p) })),
+    ...Object.entries(backup.productPrivate ?? {}).map(([id, data]) => ({ path: "productPrivate", id, data: clean(data) as object })),
   ];
   // Firestore batches hold at most 500 writes.
   for (let i = 0; i < items.length; i += 450) {

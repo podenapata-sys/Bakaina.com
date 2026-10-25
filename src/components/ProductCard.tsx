@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, ShoppingCart, TrendingUp } from "lucide-react";
+import { Heart, ShoppingCart, SlidersHorizontal, TrendingUp } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/data/products";
+import { hasVariants, priceRange, totalStock } from "@/lib/variants";
 import type { Product } from "@/types";
 import ProductImage from "./ProductImage";
 import StarRating from "./StarRating";
@@ -13,10 +14,15 @@ interface Props {
   variant?: "horizontal" | "vertical";
 }
 
-function Price({ price, oldPrice }: { price: number; oldPrice?: number }) {
+function Price({ product }: { product: Product }) {
+  const { min, max } = priceRange(product);
+  const oldPrice = product.oldPrice && product.oldPrice > min ? product.oldPrice : undefined;
   return (
     <p className="flex flex-wrap items-baseline gap-2">
-      <span className="text-lg font-bold text-accent-ink">{formatPrice(price)}</span>
+      <span className="text-lg font-bold text-accent-ink">
+        {min !== max && <span className="text-sm font-medium text-muted">from </span>}
+        {formatPrice(min)}
+      </span>
       {oldPrice && (
         <span className="text-sm text-muted line-through">
           <span className="sr-only">was </span>
@@ -45,7 +51,17 @@ function WishlistButton({ product }: { product: Product }) {
 
 export function AddToCart({ product, compact }: { product: Product; compact?: boolean }) {
   const { addToCart } = useStore();
-  const soldOut = product.stock <= 0;
+  const soldOut = totalStock(product) <= 0;
+  const base = `inline-flex min-h-11 items-center justify-center gap-2 rounded-control px-4 text-sm font-semibold transition active:scale-[0.98] ${compact ? "w-full" : ""}`;
+  // Products with sizes/colours need a choice first, which happens on the product page.
+  if (hasVariants(product) && !soldOut) {
+    return (
+      <Link href={`/product/${product.id}`} className={`${base} bg-primary text-on-primary hover:bg-primary-hover`}>
+        <SlidersHorizontal className="size-4" aria-hidden />
+        Choose options
+      </Link>
+    );
+  }
   return (
     <button
       type="button"
@@ -77,7 +93,7 @@ export default function ProductCard({ product, variant = "vertical" }: Props) {
             <Link href={`/product/${product.id}`} className="hover:text-primary">{product.name}</Link>
           </h3>
           <StarRating rating={product.rating} reviews={product.reviews} />
-          <Price price={product.price} oldPrice={product.oldPrice} />
+          <Price product={product} />
           <div className="mt-1">
             <AddToCart product={product} />
           </div>
@@ -98,7 +114,7 @@ export default function ProductCard({ product, variant = "vertical" }: Props) {
         <Link href={`/product/${product.id}`} className="hover:text-primary">{product.name}</Link>
       </h3>
       <StarRating rating={product.rating} reviews={product.reviews} />
-      <Price price={product.price} oldPrice={product.oldPrice} />
+      <Price product={product} />
       <div className="mt-auto">
         <AddToCart product={product} compact />
       </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { CatalogProvider } from "@/context/CatalogContext";
 import { StoreProvider } from "@/context/StoreContext";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -11,6 +12,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "BAKAINA — Trending Products Online",
   description: "Global products, trusted quality. Trending products delivered across Bangladesh.",
 };

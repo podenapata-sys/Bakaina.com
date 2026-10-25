@@ -9,6 +9,7 @@ import ProductImage from "@/components/ProductImage";
 import { useCatalog } from "@/context/CatalogContext";
 import { formatPrice } from "@/data/products";
 import { deleteProduct, fetchCategories, fetchProducts, newId } from "@/lib/db";
+import { totalStock } from "@/lib/variants";
 import type { Product } from "@/types";
 
 export default function AdminProducts() {
@@ -97,12 +98,15 @@ export default function AdminProducts() {
                     <td className="py-3 pr-3">
                       <div className="flex items-center gap-3">
                         <ProductImage product={p} sizes="48px" className="size-12 shrink-0 rounded-control" />
-                        <span className="font-medium text-text">{p.name}</span>
+                        <span className="flex flex-col">
+                          <span className="font-medium text-text">{p.name}</span>
+                          {(p.variants?.length ?? 0) > 0 && <span className="text-xs text-muted">{p.variants!.length} variants</span>}
+                        </span>
                       </div>
                     </td>
                     <td className="px-3 py-3 text-muted">{catName(p.categoryId)}</td>
                     <td className="px-3 py-3 font-semibold">{formatPrice(p.price)}</td>
-                    <td className={`px-3 py-3 font-semibold ${p.stock === 0 ? "text-sale" : p.stock <= 5 ? "text-accent-ink" : ""}`}>{p.stock}</td>
+                    <td className={`px-3 py-3 font-semibold ${totalStock(p) === 0 ? "text-sale" : totalStock(p) <= 5 ? "text-accent-ink" : ""}`}>{totalStock(p)}</td>
                     <td className="px-3 py-3">
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${p.active ? "bg-primary/10 text-primary" : "bg-surface text-muted ring-1 ring-line"}`}>
                         {p.active ? "Visible" : "Hidden"}

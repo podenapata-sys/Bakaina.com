@@ -14,6 +14,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Admin-only product data such as the buying price. Never public.
+    match /productPrivate/{id} {
+      allow read, write: if isAdmin();
+    }
+
     match /categories/{id} {
       allow read: if true;
       allow write: if isAdmin();

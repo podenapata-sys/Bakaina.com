@@ -11,16 +11,22 @@ export const isCloudinaryConfigured = Boolean(cloudName && uploadPreset);
 const MAX_BYTES = 5 * 1024 * 1024;
 
 export async function uploadToCloudinary(file: File, folder: string): Promise<string> {
-  if (!isCloudinaryConfigured) throw new Error("Cloudinary is not configured");
-  if (!file.type.startsWith("image/")) throw new Error("Only image files can be uploaded");
-  if (file.size > MAX_BYTES) throw new Error("Photo is larger than 5 MB");
+  if (!isCloudinaryConfigured) {
+    throw new Error("Photo uploads are not set up: add the Cloudinary settings in Vercel and redeploy.");
+  }
+  if (!file.type.startsWith("image/")) throw new Error("Only image files can be uploaded.");
+  if (file.size > MAX_BYTES) throw new Error(`${file.name} is larger than 5 MB.`);
   const body = new FormData();
   body.append("file", file);
   body.append("upload_preset", uploadPreset!);
   body.append("folder", folder);
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: "POST", body });
-  if (!res.ok) throw new Error(`Cloudinary upload failed (${res.status})`);
-  const json = (await res.json()) as { secure_url?: string };
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    method: "POST",
+    body,
+    signal: AbortSignal.timeout(60_000),
+  });
+  const json = (await res.json().catch(() => ({}))) as { secure_url?: string; error?: { message?: string } };
+  if (!res.ok) throw new Error(`Photo upload failed: ${json.error?.message ?? `Cloudinary error ${res.status}`}`);
   if (!json.secure_url) throw new Error("Cloudinary returned no URL");
   return json.secure_url;
 }

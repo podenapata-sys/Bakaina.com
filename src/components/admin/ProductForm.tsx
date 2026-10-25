@@ -109,8 +109,10 @@ export default function ProductForm({ initial, categories, onDone }: Props) {
     try {
       const urls = await Promise.all([...files].map((f) => uploadProductImage(p.id, f)));
       setP((cur) => ({ ...cur, images: [...cur.images, ...urls] }));
-    } catch {
-      setError("Photo upload failed. Check your connection and try again.");
+    } catch (e) {
+      // Our own errors are written for the admin; network failures and timeouts get the generic hint.
+      const ours = e instanceof Error && !(e instanceof TypeError) && !(e instanceof DOMException);
+      setError(ours ? e.message : "Photo upload failed. Check your connection and try again.");
     } finally {
       setUploading(false);
     }

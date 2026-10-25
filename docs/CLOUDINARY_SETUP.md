@@ -4,8 +4,8 @@ Firebase Storage now needs the paid Blaze plan. To avoid that, product photos up
 **Cloudinary's free plan** (25 credits/month ≈ 25 GB of storage or bandwidth, which is plenty for a shop
 catalogue). Products, categories and orders stay in Firestore.
 
-When the two Cloudinary variables below are set, the admin's photo upload goes to Cloudinary.
-If they are missing, it falls back to Firebase Storage.
+The admin photo upload needs the two Cloudinary variables below.
+If they are missing from the build, the upload shows "Photo uploads are not set up".
 
 ## 1. Create the account
 1. Go to https://cloudinary.com/users/register_free and sign up (no card needed).

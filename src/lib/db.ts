@@ -10,11 +10,11 @@ import {
   updateDoc,
   writeBatch,
 } from "firebase/firestore";
-import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { deleteObject, ref } from "firebase/storage";
 import { sampleCategories } from "@/data/categories";
 import { sampleProducts } from "@/data/products";
 import type { Category, Order, OrderStatus, Product, ProductPrivate } from "@/types";
-import { isCloudinaryConfigured, uploadToCloudinary } from "./cloudinary";
+import { uploadToCloudinary } from "./cloudinary";
 import { db, isFirebaseConfigured, storage } from "./firebase";
 
 /*
@@ -100,13 +100,12 @@ export async function saveProductPrivate(id: string, data: ProductPrivate): Prom
   await setDoc(doc(db(), "productPrivate", id), clean(data) as ProductPrivate);
 }
 
-/** Uploads to Cloudinary when configured (free, no billing account), else Firebase Storage. */
+/**
+ * Product photos live on Cloudinary (free plan). Firebase Storage needs the paid Blaze plan, and when it
+ * is not enabled its SDK retries for minutes, leaving the upload spinner stuck — so there is no fallback.
+ */
 export async function uploadProductImage(productId: string, file: File): Promise<string> {
-  if (isCloudinaryConfigured) return uploadToCloudinary(file, `bakaina/products/${productId}`);
-  const safeName = file.name.replace(/[^\w.-]+/g, "_");
-  const fileRef = ref(storage(), `products/${productId}/${Date.now()}-${safeName}`);
-  await uploadBytes(fileRef, file, { contentType: file.type });
-  return getDownloadURL(fileRef);
+  return uploadToCloudinary(file, `bakaina/products/${productId}`);
 }
 
 export async function saveCategory(category: Category): Promise<void> {

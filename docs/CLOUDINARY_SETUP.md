@@ -4,8 +4,7 @@ Firebase Storage now needs the paid Blaze plan. To avoid that, product photos up
 **Cloudinary's free plan** (25 credits/month ≈ 25 GB of storage or bandwidth, which is plenty for a shop
 catalogue). Products, categories and orders stay in Firestore.
 
-The admin photo upload needs the two Cloudinary variables below.
-If they are missing from the build, the upload shows "Photo uploads are not set up".
+The cloud name and preset name live in `src/lib/publicConfig.ts` (both are public), so no Vercel variables are needed.
 
 ## 1. Create the account
 1. Go to https://cloudinary.com/users/register_free and sign up (no card needed).
@@ -26,16 +25,8 @@ If they are missing from the build, the upload shows "Photo uploads are not set 
 > An unsigned preset lets the site upload without a secret key. The restrictions above stop it
 > being used for anything except product-sized images. Only the admin dashboard shows the upload button.
 
-## 3. Add the variables in Vercel
-Vercel → project **bakaina-com** → **Settings** → **Environment Variables** → add (choose **Config**, not Secret,
-and tick Production, Preview and Development):
-
-| Key | Value |
-|---|---|
-| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | your cloud name |
-| `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | `bakaina_products` |
-
-These are baked in at build time, so **redeploy** after adding them (merging a PR redeploys too).
+## 3. Put the names in the code
+Set `cloudinary.cloudName` and `cloudinary.uploadPreset` in `src/lib/publicConfig.ts`, then deploy.
 
 ## 4. Check it
 Admin → Products → Add product → upload a photo. It should appear, and the image link should start

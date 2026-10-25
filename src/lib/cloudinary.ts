@@ -3,8 +3,12 @@
  * Uploads use an *unsigned* upload preset, so set its limits in the Cloudinary console:
  * images only, max 5 MB, folder bakaina/products (see docs/CLOUDINARY_SETUP.md).
  */
-const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+import { publicConfig } from "./publicConfig";
+
+// Like Firebase: env vars only apply in local emulator tests, so a bad Vercel value can't break uploads.
+const useEnv = process.env.NEXT_PUBLIC_FIREBASE_EMULATORS === "true";
+const cloudName = useEnv ? process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME : publicConfig.cloudinary.cloudName;
+const uploadPreset = useEnv ? process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET : publicConfig.cloudinary.uploadPreset;
 
 export const isCloudinaryConfigured = Boolean(cloudName && uploadPreset);
 
@@ -12,7 +16,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
 
 export async function uploadToCloudinary(file: File, folder: string): Promise<string> {
   if (!isCloudinaryConfigured) {
-    throw new Error("Photo uploads are not set up: add the Cloudinary settings in Vercel and redeploy.");
+    throw new Error("Photo uploads are not set up (Cloudinary settings missing).");
   }
   if (!file.type.startsWith("image/")) throw new Error("Only image files can be uploaded.");
   if (file.size > MAX_BYTES) throw new Error(`${file.name} is larger than 5 MB.`);

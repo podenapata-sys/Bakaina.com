@@ -4,7 +4,10 @@ export type ProductTag = "special" | "new" | "bestseller";
 export type Gradient = "grad-1" | "grad-2" | "grad-3" | "grad-4" | "grad-5" | "grad-6";
 
 /** Key into the icon map in src/lib/categoryIcons.ts (stored as text in Firestore). */
-export type CategoryIcon = "gadgets" | "home" | "fashion" | "beauty" | "phone" | "gift" | "sport" | "kids";
+export type CategoryIcon =
+  | "gadgets" | "home" | "fashion" | "beauty" | "phone" | "gift" | "sport" | "kids"
+  | "bag" | "book" | "car" | "cleaning" | "tv" | "glasses" | "gaming" | "garden" | "health"
+  | "decor" | "key" | "kitchen" | "perfume" | "droplet" | "pill" | "watch";
 
 export interface Product {
   id: string;

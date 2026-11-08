@@ -141,7 +141,7 @@ export default function Header() {
             className="absolute inset-0 bg-text/40"
             onClick={() => setDrawerOpen(false)}
           />
-          <div className="absolute top-0 right-0 flex h-full w-[min(320px,85vw)] flex-col gap-6 bg-bg p-6 shadow-lift">
+          <div className="absolute top-0 right-0 flex h-full w-[min(320px,85vw)] flex-col gap-6 overflow-y-auto overscroll-contain bg-bg p-6 shadow-lift">
             <div className="flex items-center justify-between">
               <span className="text-lg font-bold text-primary">Menu</span>
               <button

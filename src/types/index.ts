@@ -88,6 +88,11 @@ export interface Category {
   icon: CategoryIcon;
   gradient: Gradient;
   order: number;
+  /** When set, the category gets its own homepage section with this title. */
+  homeTitle?: string;
+  homeSubtitle?: string;
+  /** Order of homepage sections (lower first); falls back to `order`. */
+  homeOrder?: number;
 }
 
 export type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";

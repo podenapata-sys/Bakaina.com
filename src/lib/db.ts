@@ -141,8 +141,10 @@ export async function applyCategoryList(list: Category[]): Promise<{ added: numb
   let removed = 0;
   const kept: string[] = [];
   list.forEach((c) => {
-    if (existing.has(c.id)) batch.update(doc(db(), "categories", c.id), { order: c.order });
-    else {
+    if (existing.has(c.id)) {
+      const { order, homeTitle, homeSubtitle, homeOrder } = c;
+      batch.update(doc(db(), "categories", c.id), clean({ order, homeTitle, homeSubtitle, homeOrder }) as Record<string, unknown>);
+    } else {
       batch.set(doc(db(), "categories", c.id), stripId(c));
       added++;
     }
@@ -160,6 +162,17 @@ export async function applyCategoryList(list: Category[]): Promise<{ added: numb
   });
   await batch.commit();
   return { added, removed, kept };
+}
+
+/** Adds the products whose ids don't exist yet; existing products (and the owner's edits) are left alone. */
+export async function addMissingProducts(list: Product[]): Promise<number> {
+  const existing = new Set((await getDocs(collection(db(), "products"))).docs.map((d) => d.id));
+  const missing = list.filter((p) => !existing.has(p.id));
+  if (!missing.length) return 0;
+  const batch = writeBatch(db());
+  missing.forEach((p) => batch.set(doc(db(), "products", p.id), stripId(p)));
+  await batch.commit();
+  return missing.length;
 }
 
 /** Moves every product in category `fromId` to `toId`, then deletes the emptied category. */

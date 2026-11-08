@@ -32,7 +32,8 @@ export default function AdminCategories() {
   const missingFinal = finalCategories.filter((f) => !data.categories.some((c) => c.id === f.id));
   const extras = data.categories.filter((c) => !isFinal(c.id));
   const leftovers = extras.filter((c) => used(c.id) > 0);
-  const needsSwitch = !loading && (missingFinal.length > 0 || extras.some((c) => used(c.id) === 0));
+  const missingSection = finalCategories.some((f) => f.homeTitle && !data.categories.some((c) => c.id === f.id && c.homeTitle));
+  const needsSwitch = !loading && (missingFinal.length > 0 || missingSection || extras.some((c) => used(c.id) === 0));
 
   async function run(task: () => Promise<string>) {
     setBusy(true);
@@ -137,7 +138,16 @@ export default function AdminCategories() {
             if (!id) return setFormError("Enter a name using letters or numbers.");
             if (editing.isNew && data.categories.some((c) => c.id === id)) return setFormError("A category with this name already exists.");
             setBusy(true);
-            await saveCategory({ id, name: editing.name.trim(), icon: editing.icon, gradient: editing.gradient, order: editing.order });
+            await saveCategory({
+              id,
+              name: editing.name.trim(),
+              icon: editing.icon,
+              gradient: editing.gradient,
+              order: editing.order,
+              homeOrder: editing.homeOrder,
+              homeTitle: editing.homeTitle?.trim() || undefined,
+              homeSubtitle: editing.homeSubtitle?.trim() || undefined,
+            });
             await Promise.all([reload(), refresh()]);
             setBusy(false);
             setEditing(null);
@@ -160,6 +170,20 @@ export default function AdminCategories() {
             <label className={label}>
               Order
               <input type="number" min={1} value={editing.order} onChange={(e) => setEditing({ ...editing, order: Number(e.target.value) })} className={input} />
+            </label>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className={label}>
+              <span>
+                Homepage section title <span className="text-xs font-normal text-muted">optional — shows its products on the homepage</span>
+              </span>
+              <input value={editing.homeTitle ?? ""} placeholder="Viral Hair Care" onChange={(e) => setEditing({ ...editing, homeTitle: e.target.value })} className={input} />
+            </label>
+            <label className={label}>
+              <span>
+                Section subtitle <span className="text-xs font-normal text-muted">optional</span>
+              </span>
+              <input value={editing.homeSubtitle ?? ""} onChange={(e) => setEditing({ ...editing, homeSubtitle: e.target.value })} className={input} />
             </label>
           </div>
           <fieldset>

@@ -3,12 +3,13 @@
 import { useCallback, useMemo, useState } from "react";
 import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import ProductForm, { emptyProduct } from "@/components/admin/ProductForm";
-import { btnAccent, card, input } from "@/components/admin/ui";
+import { btnAccent, btnPrimary, card, input } from "@/components/admin/ui";
 import { useAdminData } from "@/components/admin/useAdminData";
 import ProductImage from "@/components/ProductImage";
 import { useCatalog } from "@/context/CatalogContext";
+import { launchProducts } from "@/data/launchProducts";
 import { formatPrice } from "@/data/products";
-import { deleteProduct, fetchCategories, fetchProducts, newId } from "@/lib/db";
+import { addMissingProducts, deleteProduct, fetchCategories, fetchProducts, newId } from "@/lib/db";
 import { totalStock } from "@/lib/variants";
 import type { Product } from "@/types";
 
@@ -27,6 +28,24 @@ export default function AdminProducts() {
     const q = search.toLowerCase();
     return data.products.filter((p) => !q || p.name.toLowerCase().includes(q));
   }, [data.products, search]);
+
+  const [adding, setAdding] = useState(false);
+  const [notice, setNotice] = useState("");
+  const missingLaunch = loading ? [] : launchProducts.filter((l) => !data.products.some((p) => p.id === l.id));
+  const launchCategoriesReady = launchProducts.every((l) => data.categories.some((c) => c.id === l.categoryId));
+
+  async function onAddLaunch() {
+    setAdding(true);
+    try {
+      const n = await addMissingProducts(launchProducts);
+      await Promise.all([reload(), refresh()]);
+      setNotice(`Added ${n} products, already live. Edit each one: full name, price, stock and photos.`);
+    } catch {
+      setNotice("Could not add the products. Check your connection and try again.");
+    } finally {
+      setAdding(false);
+    }
+  }
 
   async function onDelete(p: Product) {
     if (!window.confirm(`Delete “${p.name}”? This cannot be undone.`)) return;
@@ -67,6 +86,23 @@ export default function AdminProducts() {
         </button>
       </div>
       {error && <p className="rounded-control bg-sale/10 p-4 text-sm text-sale">{error}</p>}
+      {missingLaunch.length > 0 && (
+        <div className={`${card} flex flex-wrap items-center justify-between gap-3`}>
+          <p className="text-sm">
+            <strong>Add the {launchProducts.length} launch products</strong>{" "}
+            <span className="text-muted">
+              ({missingLaunch.length} missing: hair care, body lotions, K-beauty).{" "}
+              {launchCategoriesReady
+                ? "They go live at once, showing ৳0 and Sold out until you add price, stock and photos."
+                : "First click “Use final categories” on the Categories page."}
+            </span>
+          </p>
+          <button type="button" disabled={adding || !launchCategoriesReady} onClick={onAddLaunch} className={btnPrimary}>
+            {adding ? "Adding…" : `Add ${missingLaunch.length} products`}
+          </button>
+        </div>
+      )}
+      {notice && <p role="status" className="text-sm font-medium text-primary">{notice}</p>}
 
       <div className={`${card} flex flex-col gap-4`}>
         <div className="relative max-w-sm">

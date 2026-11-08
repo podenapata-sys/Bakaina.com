@@ -7,7 +7,7 @@ export type Gradient = "grad-1" | "grad-2" | "grad-3" | "grad-4" | "grad-5" | "g
 export type CategoryIcon =
   | "gadgets" | "home" | "fashion" | "beauty" | "phone" | "gift" | "sport" | "kids"
   | "bag" | "book" | "car" | "cleaning" | "tv" | "glasses" | "gaming" | "garden" | "health"
-  | "decor" | "key" | "kitchen" | "perfume" | "droplet" | "pill" | "watch";
+  | "decor" | "key" | "kitchen" | "perfume" | "droplet" | "pill" | "watch" | "hair";
 
 export interface Product {
   id: string;
@@ -88,6 +88,11 @@ export interface Category {
   icon: CategoryIcon;
   gradient: Gradient;
   order: number;
+  /** When set, the category gets its own homepage section with this title. */
+  homeTitle?: string;
+  homeSubtitle?: string;
+  /** Order of homepage sections (lower first); falls back to `order`. */
+  homeOrder?: number;
 }
 
 export type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";

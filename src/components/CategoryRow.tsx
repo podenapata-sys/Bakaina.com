@@ -10,8 +10,8 @@ export default function CategoryRow() {
   return (
     <section id="categories" aria-labelledby="categories-heading" className="mx-auto max-w-7xl px-4 pt-16">
       <SectionHeading id="categories-heading">Shop by Category</SectionHeading>
-      <ul className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
-        {categories.slice(0, 5).map(({ id, name, icon, gradient }) => {
+      <ul className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6">
+        {categories.slice(0, 6).map(({ id, name, icon, gradient }) => {
           const Icon = categoryIcons[icon] ?? categoryIcons.gift;
           return (
             <li key={id} className="w-32 shrink-0 snap-start sm:w-auto">

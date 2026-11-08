@@ -1,4 +1,5 @@
 import CategoryRow from "@/components/CategoryRow";
+import CategoryShowcase from "@/components/CategoryShowcase";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import HeroGrid from "@/components/HeroGrid";
@@ -14,6 +15,7 @@ export default function Home() {
         <HeroGrid />
         <CategoryRow />
         <TrendingProducts />
+        <CategoryShowcase />
         <PromoBanner />
         <OurProducts />
       </main>

@@ -128,6 +128,7 @@ export default function ProductForm({ initial, categories, onDone }: Props) {
       onSubmit={async (e) => {
         e.preventDefault();
         const next = normalize(p);
+        if (next.active && next.images.length === 0) return setError("Add a photo before setting the product to Active.");
         if (next.oldPrice && next.oldPrice <= next.price) return setError("Old price must be higher than the price.");
         if (next.videoUrl && !youtubeId(next.videoUrl)) return setError("The video link must be a YouTube link.");
         if (next.options && new Set(next.options.map((o) => o.name.toLowerCase())).size !== next.options.length)

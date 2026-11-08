@@ -67,7 +67,7 @@ export default function ShopView() {
       </p>
 
       <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div role="group" aria-label="Filter by category" className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:px-0">
+        <div role="group" aria-label="Filter by category" className="no-scrollbar -mx-4 flex min-w-0 gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
           <button type="button" aria-pressed={!category} onClick={() => setParam("category", "")} className={chip(!category)}>
             All
           </button>

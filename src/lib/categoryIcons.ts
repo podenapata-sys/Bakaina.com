@@ -1,4 +1,30 @@
-import { Baby, Dumbbell, Gift, Headphones, Home, type LucideIcon, Shirt, Smartphone, Sparkles } from "lucide-react";
+import {
+  Baby,
+  Book,
+  Brush,
+  Car,
+  Droplet,
+  Dumbbell,
+  Gamepad2,
+  Gift,
+  Glasses,
+  Headphones,
+  HeartPulse,
+  Home,
+  KeyRound,
+  Leaf,
+  type LucideIcon,
+  Pill,
+  Shirt,
+  ShoppingBag,
+  Smartphone,
+  Sofa,
+  Sparkles,
+  SprayCan,
+  Tv,
+  Utensils,
+  Watch,
+} from "lucide-react";
 import type { CategoryIcon } from "@/types";
 
 export const categoryIcons: Record<CategoryIcon, LucideIcon> = {
@@ -10,6 +36,22 @@ export const categoryIcons: Record<CategoryIcon, LucideIcon> = {
   gift: Gift,
   sport: Dumbbell,
   kids: Baby,
+  bag: ShoppingBag,
+  book: Book,
+  car: Car,
+  cleaning: Brush,
+  tv: Tv,
+  glasses: Glasses,
+  gaming: Gamepad2,
+  garden: Leaf,
+  health: HeartPulse,
+  decor: Sofa,
+  key: KeyRound,
+  kitchen: Utensils,
+  perfume: SprayCan,
+  droplet: Droplet,
+  pill: Pill,
+  watch: Watch,
 };
 
 export const categoryIconOptions = Object.keys(categoryIcons) as CategoryIcon[];

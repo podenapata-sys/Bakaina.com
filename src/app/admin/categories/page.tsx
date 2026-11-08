@@ -6,11 +6,12 @@ import { btnAccent, btnGhost, btnPrimary, card, input, label } from "@/component
 import { useAdminData } from "@/components/admin/useAdminData";
 import { useCatalog } from "@/context/CatalogContext";
 import { categoryIconOptions, categoryIcons } from "@/lib/categoryIcons";
-import { deleteCategory, fetchCategories, fetchProducts, saveCategory } from "@/lib/db";
+import { addMissingCategories, deleteCategory, fetchCategories, fetchProducts, saveCategory } from "@/lib/db";
+import { slugify } from "@/lib/slugify";
+import { storeCategories } from "@/data/categories";
 import type { Category, CategoryIcon, Gradient } from "@/types";
 
 const gradients: Gradient[] = ["grad-1", "grad-2", "grad-3", "grad-4", "grad-5", "grad-6"];
-const slugify = (s: string) => s.toLowerCase().trim().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 export default function AdminCategories() {
   const load = useCallback(async () => {
@@ -23,7 +24,23 @@ export default function AdminCategories() {
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
 
+  const [added, setAdded] = useState("");
+
   const used = (id: string) => data.products.filter((p) => p.categoryId === id).length;
+  const missing = loading ? 0 : storeCategories.filter((s) => !data.categories.some((c) => c.id === s.id)).length;
+
+  async function onAddStoreCategories() {
+    setBusy(true);
+    try {
+      const n = await addMissingCategories(storeCategories);
+      await Promise.all([reload(), refresh()]);
+      setAdded(`Added ${n} categories.`);
+    } catch {
+      setAdded("Could not add the categories. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function onDelete(c: Category) {
     const n = used(c.id);
@@ -50,6 +67,18 @@ export default function AdminCategories() {
       </div>
       <p className="text-sm text-muted">The first 5 categories (by order) show on the homepage.</p>
       {error && <p className="rounded-control bg-sale/10 p-4 text-sm text-sale">{error}</p>}
+      {missing > 0 && (
+        <div className={`${card} flex flex-wrap items-center justify-between gap-3`}>
+          <p className="text-sm">
+            <strong>Add the {storeCategories.length} store categories</strong>{" "}
+            <span className="text-muted">({missing} missing). Existing categories stay as they are.</span>
+          </p>
+          <button type="button" disabled={busy} onClick={onAddStoreCategories} className={btnPrimary}>
+            {busy ? "Adding…" : `Add ${missing} categories`}
+          </button>
+        </div>
+      )}
+      {added && <p role="status" className="text-sm font-medium text-primary">{added}</p>}
 
       {editing && (
         <form

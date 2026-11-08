@@ -125,6 +125,17 @@ export async function seedSampleData(): Promise<void> {
   await batch.commit();
 }
 
+/** Adds the categories that don't exist yet; existing ones (and the owner's edits) are left alone. */
+export async function addMissingCategories(list: Category[]): Promise<number> {
+  const existing = new Set((await getDocs(collection(db(), "categories"))).docs.map((d) => d.id));
+  const missing = list.filter((c) => !existing.has(c.id));
+  if (!missing.length) return 0;
+  const batch = writeBatch(db());
+  missing.forEach((c) => batch.set(doc(db(), "categories", c.id), stripId(c)));
+  await batch.commit();
+  return missing.length;
+}
+
 // ---------- Orders (admin) ----------
 
 export async function fetchOrders(): Promise<Order[]> {

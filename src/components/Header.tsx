@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { useCatalog } from "@/context/CatalogContext";
@@ -132,8 +133,9 @@ export default function Header() {
         </div>
       )}
 
-      {/* Drawer */}
-      {drawerOpen && (
+      {/* Drawer. Portal: the header's backdrop-blur would otherwise make this fixed overlay only as tall as the header. */}
+      {drawerOpen &&
+        createPortal(
         <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Menu">
           <button
             type="button"
@@ -141,7 +143,7 @@ export default function Header() {
             className="absolute inset-0 bg-text/40"
             onClick={() => setDrawerOpen(false)}
           />
-          <div className="absolute top-0 right-0 flex h-full w-[min(320px,85vw)] flex-col gap-6 bg-bg p-6 shadow-lift">
+          <div className="absolute top-0 right-0 flex h-full w-[min(320px,85vw)] flex-col gap-6 overflow-y-auto overscroll-contain bg-bg p-6 shadow-lift">
             <div className="flex items-center justify-between">
               <span className="text-lg font-bold text-primary">Menu</span>
               <button
@@ -186,8 +188,9 @@ export default function Header() {
               ))}
             </nav>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </header>
   );
 }

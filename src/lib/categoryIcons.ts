@@ -15,6 +15,7 @@ import {
   Leaf,
   type LucideIcon,
   Pill,
+  Scissors,
   Shirt,
   ShoppingBag,
   Smartphone,
@@ -52,6 +53,7 @@ export const categoryIcons: Record<CategoryIcon, LucideIcon> = {
   droplet: Droplet,
   pill: Pill,
   watch: Watch,
+  hair: Scissors,
 };
 
 export const categoryIconOptions = Object.keys(categoryIcons) as CategoryIcon[];

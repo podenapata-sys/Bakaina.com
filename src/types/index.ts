@@ -7,7 +7,7 @@ export type Gradient = "grad-1" | "grad-2" | "grad-3" | "grad-4" | "grad-5" | "g
 export type CategoryIcon =
   | "gadgets" | "home" | "fashion" | "beauty" | "phone" | "gift" | "sport" | "kids"
   | "bag" | "book" | "car" | "cleaning" | "tv" | "glasses" | "gaming" | "garden" | "health"
-  | "decor" | "key" | "kitchen" | "perfume" | "droplet" | "pill" | "watch";
+  | "decor" | "key" | "kitchen" | "perfume" | "droplet" | "pill" | "watch" | "hair";
 
 export interface Product {
   id: string;

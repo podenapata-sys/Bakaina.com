@@ -44,7 +44,7 @@ export default function AdminOverview() {
         <div className={`${card} flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`}>
           <div>
             <p className="font-semibold text-text">Your store has no products yet</p>
-            <p className="text-sm text-muted">Load the 12 sample products and 5 categories, then edit them to your real items.</p>
+            <p className="text-sm text-muted">Load the 12 sample products and 6 categories, then edit them to your real items.</p>
           </div>
           <button
             type="button"

@@ -8,6 +8,7 @@ import {
   query,
   setDoc,
   updateDoc,
+  where,
   writeBatch,
 } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
@@ -125,15 +126,50 @@ export async function seedSampleData(): Promise<void> {
   await batch.commit();
 }
 
-/** Adds the categories that don't exist yet; existing ones (and the owner's edits) are left alone. */
-export async function addMissingCategories(list: Category[]): Promise<number> {
-  const existing = new Set((await getDocs(collection(db(), "categories"))).docs.map((d) => d.id));
-  const missing = list.filter((c) => !existing.has(c.id));
-  if (!missing.length) return 0;
+/**
+ * Makes `list` the store's categories: adds missing ones, puts all of them in list order, and deletes every
+ * other category that has no products. Categories that still hold products are kept (ordered last) and
+ * returned, so the owner can move those products first (see moveCategoryProducts).
+ */
+export async function applyCategoryList(list: Category[]): Promise<{ added: number; removed: number; kept: string[] }> {
+  const [catSnap, prodSnap] = await Promise.all([getDocs(collection(db(), "categories")), getDocs(collection(db(), "products"))]);
+  const inUse = new Set(prodSnap.docs.map((d) => d.data().categoryId as string));
+  const existing = new Set(catSnap.docs.map((d) => d.id));
+  const wanted = new Set(list.map((c) => c.id));
   const batch = writeBatch(db());
-  missing.forEach((c) => batch.set(doc(db(), "categories", c.id), stripId(c)));
+  let added = 0;
+  let removed = 0;
+  const kept: string[] = [];
+  list.forEach((c) => {
+    if (existing.has(c.id)) batch.update(doc(db(), "categories", c.id), { order: c.order });
+    else {
+      batch.set(doc(db(), "categories", c.id), stripId(c));
+      added++;
+    }
+  });
+  catSnap.docs.forEach((d) => {
+    if (wanted.has(d.id)) return;
+    if (inUse.has(d.id)) {
+      // Kept until its products are moved; ordered after the list so it stays off the homepage.
+      kept.push(d.id);
+      batch.update(d.ref, { order: list.length + kept.length });
+    } else {
+      batch.delete(d.ref);
+      removed++;
+    }
+  });
   await batch.commit();
-  return missing.length;
+  return { added, removed, kept };
+}
+
+/** Moves every product in category `fromId` to `toId`, then deletes the emptied category. */
+export async function moveCategoryProducts(fromId: string, toId: string): Promise<number> {
+  const snap = await getDocs(query(collection(db(), "products"), where("categoryId", "==", fromId)));
+  const batch = writeBatch(db());
+  snap.docs.forEach((d) => batch.update(d.ref, { categoryId: toId }));
+  batch.delete(doc(db(), "categories", fromId));
+  await batch.commit();
+  return snap.size;
 }
 
 // ---------- Orders (admin) ----------

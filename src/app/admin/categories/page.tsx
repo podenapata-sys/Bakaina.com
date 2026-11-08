@@ -6,9 +6,9 @@ import { btnAccent, btnGhost, btnPrimary, card, input, label } from "@/component
 import { useAdminData } from "@/components/admin/useAdminData";
 import { useCatalog } from "@/context/CatalogContext";
 import { categoryIconOptions, categoryIcons } from "@/lib/categoryIcons";
-import { addMissingCategories, deleteCategory, fetchCategories, fetchProducts, saveCategory } from "@/lib/db";
+import { applyCategoryList, deleteCategory, fetchCategories, fetchProducts, moveCategoryProducts, saveCategory } from "@/lib/db";
 import { slugify } from "@/lib/slugify";
-import { storeCategories } from "@/data/categories";
+import { finalCategories } from "@/data/categories";
 import type { Category, CategoryIcon, Gradient } from "@/types";
 
 const gradients: Gradient[] = ["grad-1", "grad-2", "grad-3", "grad-4", "grad-5", "grad-6"];
@@ -24,23 +24,40 @@ export default function AdminCategories() {
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
 
-  const [added, setAdded] = useState("");
+  const [notice, setNotice] = useState("");
+  const [moveTo, setMoveTo] = useState<Record<string, string>>({});
 
   const used = (id: string) => data.products.filter((p) => p.categoryId === id).length;
-  const missing = loading ? 0 : storeCategories.filter((s) => !data.categories.some((c) => c.id === s.id)).length;
+  const isFinal = (id: string) => finalCategories.some((f) => f.id === id);
+  const missingFinal = finalCategories.filter((f) => !data.categories.some((c) => c.id === f.id));
+  const extras = data.categories.filter((c) => !isFinal(c.id));
+  const leftovers = extras.filter((c) => used(c.id) > 0);
+  const needsSwitch = !loading && (missingFinal.length > 0 || extras.some((c) => used(c.id) === 0));
 
-  async function onAddStoreCategories() {
+  async function run(task: () => Promise<string>) {
     setBusy(true);
     try {
-      const n = await addMissingCategories(storeCategories);
+      setNotice(await task());
       await Promise.all([reload(), refresh()]);
-      setAdded(`Added ${n} categories.`);
     } catch {
-      setAdded("Could not add the categories. Check your connection and try again.");
+      setNotice("Something went wrong. Check your connection and try again.");
     } finally {
       setBusy(false);
     }
   }
+
+  const onSwitch = () =>
+    run(async () => {
+      const r = await applyCategoryList(finalCategories);
+      return `Added ${r.added}, removed ${r.removed} empty categories.${r.kept.length ? " Move the products below to finish." : ""}`;
+    });
+
+  const onMove = (c: Category) =>
+    run(async () => {
+      const to = moveTo[c.id] ?? finalCategories[0].id;
+      const n = await moveCategoryProducts(c.id, to);
+      return `Moved ${n} products from ${c.name} to ${finalCategories.find((f) => f.id === to)?.name}, and removed ${c.name}.`;
+    });
 
   async function onDelete(c: Category) {
     const n = used(c.id);
@@ -65,20 +82,51 @@ export default function AdminCategories() {
           <Plus className="size-4" aria-hidden /> Add category
         </button>
       </div>
-      <p className="text-sm text-muted">The first 5 categories (by order) show on the homepage.</p>
+      <p className="text-sm text-muted">The first 6 categories (by order) show on the homepage.</p>
       {error && <p className="rounded-control bg-sale/10 p-4 text-sm text-sale">{error}</p>}
-      {missing > 0 && (
+      {needsSwitch && (
         <div className={`${card} flex flex-wrap items-center justify-between gap-3`}>
           <p className="text-sm">
-            <strong>Add the {storeCategories.length} store categories</strong>{" "}
-            <span className="text-muted">({missing} missing). Existing categories stay as they are.</span>
+            <strong>Use the final {finalCategories.length} categories</strong>{" "}
+            <span className="text-muted">
+              ({finalCategories.map((f) => f.name).join(", ")}). Adds the missing ones and removes other categories that have no
+              products.
+            </span>
           </p>
-          <button type="button" disabled={busy} onClick={onAddStoreCategories} className={btnPrimary}>
-            {busy ? "Adding…" : `Add ${missing} categories`}
+          <button type="button" disabled={busy} onClick={onSwitch} className={btnPrimary}>
+            {busy ? "Working…" : "Use final categories"}
           </button>
         </div>
       )}
-      {added && <p role="status" className="text-sm font-medium text-primary">{added}</p>}
+      {!loading && missingFinal.length === 0 && leftovers.length > 0 && (
+        <div className={`${card} flex flex-col gap-3`}>
+          <p className="text-sm">
+            <strong>Old categories with products.</strong>{" "}
+            <span className="text-muted">Choose where their products go; the old category is then removed.</span>
+          </p>
+          {leftovers.map((c) => (
+            <div key={c.id} className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="min-w-56 font-medium">
+                {c.name} <span className="text-muted">({used(c.id)} products)</span>
+              </span>
+              <select
+                aria-label={`Move ${c.name} products to`}
+                value={moveTo[c.id] ?? finalCategories[0].id}
+                onChange={(e) => setMoveTo({ ...moveTo, [c.id]: e.target.value })}
+                className={`${input} sm:w-64`}
+              >
+                {finalCategories.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+              <button type="button" disabled={busy} onClick={() => onMove(c)} className={btnGhost}>
+                Move &amp; remove
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {notice && <p role="status" className="text-sm font-medium text-primary">{notice}</p>}
 
       {editing && (
         <form

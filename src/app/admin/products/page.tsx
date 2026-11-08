@@ -39,7 +39,7 @@ export default function AdminProducts() {
     try {
       const n = await addMissingProducts(launchProducts);
       await Promise.all([reload(), refresh()]);
-      setNotice(`Added ${n} draft products. Edit each one: full name, price, photos, then set Status to Active.`);
+      setNotice(`Added ${n} products, already live. Edit each one: full name, price, stock and photos.`);
     } catch {
       setNotice("Could not add the products. Check your connection and try again.");
     } finally {
@@ -89,16 +89,16 @@ export default function AdminProducts() {
       {missingLaunch.length > 0 && (
         <div className={`${card} flex flex-wrap items-center justify-between gap-3`}>
           <p className="text-sm">
-            <strong>Add the {launchProducts.length} launch products as drafts</strong>{" "}
+            <strong>Add the {launchProducts.length} launch products</strong>{" "}
             <span className="text-muted">
               ({missingLaunch.length} missing: hair care, body lotions, K-beauty).{" "}
               {launchCategoriesReady
-                ? "They stay hidden until you add a price and photo and set them Active."
+                ? "They go live at once, showing ৳0 and Sold out until you add price, stock and photos."
                 : "First click “Use final categories” on the Categories page."}
             </span>
           </p>
           <button type="button" disabled={adding || !launchCategoriesReady} onClick={onAddLaunch} className={btnPrimary}>
-            {adding ? "Adding…" : `Add ${missingLaunch.length} drafts`}
+            {adding ? "Adding…" : `Add ${missingLaunch.length} products`}
           </button>
         </div>
       )}

@@ -2,8 +2,9 @@ import { slugify } from "@/lib/slugify";
 import type { Gradient, Product } from "@/types";
 
 /**
- * The client's launch list, added as drafts from Admin → Products. Names are as sent (some are cut short);
- * the owner adds the full name, price and photos, then sets each one Active.
+ * The client's launch list, added from Admin → Products. Published straight away at the client's request:
+ * price 0 and stock 0 (so they show "Sold out" and can't be ordered) until the owner adds name, price, stock
+ * and photos. Names are as sent (some are cut short).
  */
 const launchList: [categoryId: string, name: string][] = [
   ["haircare", "Karseell Hair Mask Jar Maca Essence Repair"],
@@ -37,6 +38,6 @@ export const launchProducts: Product[] = launchList.map(([categoryId, name], i) 
   tag: "new",
   trending: false,
   gradient: gradients[i % gradients.length],
-  active: false,
+  active: true,
   createdAt: Date.UTC(2026, 10, 8) - i,
 }));

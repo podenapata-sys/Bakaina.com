@@ -164,15 +164,26 @@ export async function applyCategoryList(list: Category[]): Promise<{ added: numb
   return { added, removed, kept };
 }
 
-/** Adds the products whose ids don't exist yet; existing products (and the owner's edits) are left alone. */
-export async function addMissingProducts(list: Product[]): Promise<number> {
-  const existing = new Set((await getDocs(collection(db(), "products"))).docs.map((d) => d.id));
-  const missing = list.filter((p) => !existing.has(p.id));
-  if (!missing.length) return 0;
+/**
+ * Makes `list` the store's only products: deletes every other product (with its private buying price) and
+ * adds the listed ones that don't exist yet. Listed products that already exist keep the owner's edits.
+ */
+export async function replaceProducts(list: Product[]): Promise<{ added: number; removed: number }> {
+  const snap = await getDocs(collection(db(), "products"));
+  const wanted = new Set(list.map((p) => p.id));
+  const existing = new Set(snap.docs.map((d) => d.id));
   const batch = writeBatch(db());
+  let removed = 0;
+  snap.docs.forEach((d) => {
+    if (wanted.has(d.id)) return;
+    batch.delete(d.ref);
+    batch.delete(doc(db(), "productPrivate", d.id));
+    removed++;
+  });
+  const missing = list.filter((p) => !existing.has(p.id));
   missing.forEach((p) => batch.set(doc(db(), "products", p.id), stripId(p)));
   await batch.commit();
-  return missing.length;
+  return { added: missing.length, removed };
 }
 
 /** Moves every product in category `fromId` to `toId`, then deletes the emptied category. */

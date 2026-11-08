@@ -44,8 +44,8 @@ export interface Product {
   nameBn?: string;
   /** Tick-mark checklist under the description: a bold label, then the text. */
   features?: ProductFeature[];
-  /** "Buy minQty or more, get percent off" on the whole line. */
-  bulk?: BulkDiscount;
+  /** Quantity offer cards: buy `qty` for a total of `price` (e.g. 2 for ৳2,990). One-item price is `price`. */
+  offers?: QuantityOffer[];
   /** Questions and answers in the accordion at the bottom of the product page. */
   faqs?: ProductFaq[];
 
@@ -76,9 +76,10 @@ export interface ProductFeature {
   text: string;
 }
 
-export interface BulkDiscount {
-  minQty: number;
-  percent: number;
+export interface QuantityOffer {
+  qty: number;
+  /** Total for all `qty` items, in BDT. */
+  price: number;
 }
 
 export interface ProductFaq {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Banknote, Minus, Plus, RotateCcw, Tag, Truck } from "lucide-react";
+import { Banknote, Minus, Plus, RotateCcw, Truck } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "./ProductGallery";
 import StarRating from "@/components/StarRating";
@@ -12,7 +12,7 @@ import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/data/products";
 import { fetchProduct } from "@/lib/db";
 import { productJsonLd } from "@/lib/productSeo";
-import { bulkActive, bulkTotal } from "@/lib/pricing";
+import { lineTotal, usableOffers } from "@/lib/pricing";
 import { productHref, productPagePromises, siteUrl } from "@/lib/site";
 import { findVariant, hasVariants, isValueAvailable, priceRange, totalStock, usableOptions, variantPrice, youtubeId } from "@/lib/variants";
 import type { Product } from "@/types";
@@ -95,9 +95,11 @@ export default function ProductView() {
 
   const jsonLd = JSON.stringify(productJsonLd(product, `${siteUrl}${productHref(product.id)}`)).replace(/</g, "\\u003c");
   const offPct = oldPrice ? Math.round((1 - unitPrice / oldPrice) * 100) : 0;
-  const bulk = bulkActive(product.bulk) ? product.bulk : undefined;
-  const line = bulkTotal(unitPrice, qty, bulk);
-  const needMore = bulk ? bulk.minQty - qty : 0;
+  const offers = usableOffers(unitPrice, product.offers);
+  // With offers the buyer picks a card (1, 2, 3…) instead of using the − / + stepper.
+  const offerCards = offers.length ? [{ qty: 1, price: unitPrice }, ...offers] : [];
+  const line = lineTotal(unitPrice, qty, offers);
+  const regular = (n: number) => (oldPrice ?? unitPrice) * n;
   const canBuy = !soldOut && !needsChoice;
   const blockedLabel = soldOut ? "স্টক শেষ" : `${missing.join(" ও ")} বেছে নিন`;
   const add = (kind: "cart" | "buy") => {
@@ -194,36 +196,69 @@ export default function ProductView() {
             </fieldset>
           ))}
 
-          {bulk && (
-            <p className="mt-[18px] flex items-center gap-2.5 rounded-xl border-[1.5px] border-dashed border-tint-line bg-tint px-3.5 py-3 text-sm font-semibold text-primary">
-              <Tag className="size-5 shrink-0" aria-hidden />
-              {bulk.minQty}টি বা বেশি কিনলে পুরো অর্ডারে {bulk.percent}% ছাড়!
-            </p>
-          )}
-
           <div className="mt-[18px]">
-            <p className="mb-2 text-sm font-medium text-text">পরিমাণ</p>
-            <div role="group" aria-label="Quantity" className="inline-flex items-center rounded-full border-[1.5px] border-line">
-              <button type="button" aria-label="Decrease quantity" onClick={() => setQty((q) => Math.max(1, q - 1))} className="flex size-11 items-center justify-center text-text disabled:opacity-35" disabled={qty <= 1}>
-                <Minus className="size-4" aria-hidden />
-              </button>
-              <output aria-live="polite" className="min-w-7 text-center font-semibold">{qty}</output>
-              <button type="button" aria-label="Increase quantity" onClick={() => setQty((q) => Math.min(Math.max(stock, 1), q + 1))} className="flex size-11 items-center justify-center text-text disabled:opacity-35" disabled={qty >= stock}>
-                <Plus className="size-4" aria-hidden />
-              </button>
-            </div>
+            {offerCards.length > 0 ? (
+              <>
+                <p className="mb-2.5 flex items-center gap-3 text-sm font-medium text-sale before:h-px before:flex-1 before:bg-line after:h-px after:flex-1 after:bg-line">
+                  সীমিত সময়ের অফার
+                </p>
+                <div role="radiogroup" aria-label="পরিমাণ" className="flex flex-col gap-2.5">
+                  {offerCards.map((o) => {
+                    const selected = qty === o.qty;
+                    const struck = regular(o.qty);
+                    return (
+                      <button
+                        key={o.qty}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        disabled={!soldOut && o.qty > stock}
+                        onClick={() => setQty(o.qty)}
+                        className={`flex min-h-16 items-center gap-3.5 rounded-[14px] border-[1.5px] px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                          selected ? "border-primary bg-bg shadow-soft" : "border-tint-line bg-tint hover:border-primary"
+                        }`}
+                      >
+                        <span aria-hidden className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 ${selected ? "border-primary" : "border-muted/50"}`}>
+                          {selected && <span className="size-2.5 rounded-full bg-primary" />}
+                        </span>
+                        <span className="flex-1">
+                          <span className="block font-semibold text-text">{o.qty}টি</span>
+                          <span className={`block text-[13px] ${o.qty === 1 ? "text-muted" : "font-semibold text-save"}`}>
+                            {o.qty === 1 ? "সাধারণ দাম" : `সাশ্রয় ${formatPrice(struck - o.price)}`}
+                          </span>
+                        </span>
+                        <span className="text-right">
+                          <span className="block font-bold text-text">{formatPrice(o.price)}</span>
+                          {struck > o.price && <s className="block text-[13px] text-muted">{formatPrice(struck)}</s>}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mb-2 text-sm font-medium text-text">পরিমাণ</p>
+                <div role="group" aria-label="Quantity" className="inline-flex items-center rounded-full border-[1.5px] border-line">
+                  <button type="button" aria-label="Decrease quantity" onClick={() => setQty((q) => Math.max(1, q - 1))} className="flex size-11 items-center justify-center text-text disabled:opacity-35" disabled={qty <= 1}>
+                    <Minus className="size-4" aria-hidden />
+                  </button>
+                  <output aria-live="polite" className="min-w-7 text-center font-semibold">{qty}</output>
+                  <button type="button" aria-label="Increase quantity" onClick={() => setQty((q) => Math.min(Math.max(stock, 1), q + 1))} className="flex size-11 items-center justify-center text-text disabled:opacity-35" disabled={qty >= stock}>
+                    <Plus className="size-4" aria-hidden />
+                  </button>
+                </div>
+              </>
+            )}
             <div className="mt-3 border-t border-line pt-3" aria-live="polite">
               <p className="flex items-baseline justify-between text-[15px] text-muted">
                 <span>মোট</span>
                 <span>
-                  {line.discount > 0 && <s className="mr-1.5 text-[15px] font-medium">{formatPrice(line.sub)}</s>}
+                  {regular(qty) > line.total && <s className="mr-1.5 text-[15px] font-medium">{formatPrice(regular(qty))}</s>}
                   <strong className="text-[22px] font-bold text-text">{formatPrice(line.total)}</strong>
                 </span>
               </p>
-              {line.discount > 0 && <p className="mt-0.5 text-right text-sm font-semibold text-save">আপনি বাঁচাচ্ছেন {formatPrice(line.discount)}</p>}
-              {bulk && needMore > 0 && needMore <= 2 && (
-                <p className="mt-1.5 text-[13px] text-primary">আর {needMore}টি যোগ করলে {bulk.percent}% ছাড়</p>
-              )}
+              {regular(qty) > line.total && <p className="mt-0.5 text-right text-sm font-semibold text-save">আপনি বাঁচাচ্ছেন {formatPrice(regular(qty) - line.total)}</p>}
             </div>
           </div>
 

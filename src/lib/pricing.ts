@@ -1,12 +1,17 @@
-import type { BulkDiscount } from "@/types";
+import type { QuantityOffer } from "@/types";
 
-/** True when the bulk offer is usable: at least 2 items and a real percentage. */
-export const bulkActive = (bulk?: BulkDiscount): bulk is BulkDiscount =>
-  !!bulk && bulk.minQty >= 2 && bulk.percent > 0 && bulk.percent < 100;
+/** Valid offers only (2+ items, a price below buying them one by one), smallest quantity first. */
+export function usableOffers(unitPrice: number, offers?: QuantityOffer[]): QuantityOffer[] {
+  const seen = new Set<number>();
+  return (offers ?? [])
+    .filter((o) => o.qty >= 2 && o.price > 0 && o.price < unitPrice * o.qty && !seen.has(o.qty) && seen.add(o.qty))
+    .sort((a, b) => a.qty - b.qty);
+}
 
-/** Line total for `qty` items, with the bulk discount when it applies. Checkout reuses this. */
-export function bulkTotal(unitPrice: number, qty: number, bulk?: BulkDiscount) {
+/** Line total for `qty` items: the offer price when there is an offer for exactly that many. Checkout reuses this. */
+export function lineTotal(unitPrice: number, qty: number, offers?: QuantityOffer[]) {
   const sub = unitPrice * qty;
-  const discount = bulkActive(bulk) && qty >= bulk.minQty ? Math.round((sub * bulk.percent) / 100) : 0;
-  return { sub, discount, total: sub - discount };
+  const offer = usableOffers(unitPrice, offers).find((o) => o.qty === qty);
+  const total = offer ? offer.price : sub;
+  return { sub, discount: sub - total, total };
 }

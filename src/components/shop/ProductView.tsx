@@ -2,7 +2,7 @@
 
 import Image from "@/components/SmartImage";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Minus, Plus, RotateCcw, ShieldCheck, ShoppingCart, Truck } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
@@ -12,11 +12,13 @@ import { useCatalog } from "@/context/CatalogContext";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/data/products";
 import { fetchProduct } from "@/lib/db";
+import { productJsonLd } from "@/lib/productSeo";
+import { productHref, siteUrl } from "@/lib/site";
 import { findVariant, hasVariants, isValueAvailable, priceRange, totalStock, usableOptions, variantPrice, youtubeId } from "@/lib/variants";
 import type { Product } from "@/types";
 
 export default function ProductView() {
-  const { id } = useParams<{ id: string }>();
+  const id = useSearchParams().get("id") ?? "";
   const { products, categories, loading } = useCatalog();
   const { addToCart } = useStore();
   const fromCatalog = products.find((p) => p.id === id);
@@ -28,7 +30,7 @@ export default function ProductView() {
 
   // Direct visits can arrive before the catalogue loads, or for a product not in it.
   useEffect(() => {
-    if (fromCatalog || loading) return;
+    if (!id || fromCatalog || loading) return;
     let alive = true;
     fetchProduct(id).then((p) => alive && setFetched(p?.active ? p : null), () => alive && setFetched(null));
     return () => {
@@ -36,7 +38,13 @@ export default function ProductView() {
     };
   }, [id, fromCatalog, loading]);
 
-  const product = fromCatalog ?? fetched;
+  // No ?id= in the link means there is nothing to show.
+  const product = id ? (fromCatalog ?? fetched) : null;
+
+  // Static site: the page title is set in the browser once the product has loaded.
+  useEffect(() => {
+    if (product) document.title = `${product.name} — BAKAINA`;
+  }, [product]);
 
   if (product === undefined) {
     return <p className="mx-auto max-w-7xl px-4 py-16 text-center text-muted">Loading product…</p>;
@@ -85,8 +93,11 @@ export default function ProductView() {
     product.sku && { label: "Product code", value: product.sku },
   ].filter(Boolean) as { label: string; value: string }[];
 
+  const jsonLd = JSON.stringify(productJsonLd(product, `${siteUrl}${productHref(product.id)}`)).replace(/</g, "\\u003c");
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap gap-2 text-sm text-muted">
         <Link href="/" className="hover:text-primary">Home</Link>
         <span aria-hidden>/</span>

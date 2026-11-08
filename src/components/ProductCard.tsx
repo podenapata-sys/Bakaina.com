@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { productHref } from "@/lib/site";
 import { Heart, ShoppingCart, SlidersHorizontal, TrendingUp } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/data/products";
@@ -56,7 +57,7 @@ export function AddToCart({ product, compact }: { product: Product; compact?: bo
   // Products with sizes/colours need a choice first, which happens on the product page.
   if (hasVariants(product) && !soldOut) {
     return (
-      <Link href={`/product/${product.id}`} className={`${base} bg-primary text-on-primary hover:bg-primary-hover`}>
+      <Link href={productHref(product.id)} className={`${base} bg-primary text-on-primary hover:bg-primary-hover`}>
         <SlidersHorizontal className="size-4" aria-hidden />
         Choose options
       </Link>
@@ -83,14 +84,14 @@ export default function ProductCard({ product, variant = "vertical" }: Props) {
           <TrendingUp className="size-3.5" aria-hidden /> Trending
         </span>
         <div className="relative aspect-square w-28 shrink-0 sm:w-40 lg:w-44">
-          <Link href={`/product/${product.id}`} aria-label={product.name} tabIndex={-1}>
+          <Link href={productHref(product.id)} aria-label={product.name} tabIndex={-1}>
             <ProductImage product={product} sizes="176px" className="size-full rounded-control" />
           </Link>
           <WishlistButton product={product} />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <h3 className="text-sm font-semibold text-text sm:text-lg">
-            <Link href={`/product/${product.id}`} className="hover:text-primary">{product.name}</Link>
+            <Link href={productHref(product.id)} className="hover:text-primary">{product.name}</Link>
           </h3>
           <StarRating rating={product.rating} reviews={product.reviews} />
           <Price product={product} />
@@ -105,13 +106,13 @@ export default function ProductCard({ product, variant = "vertical" }: Props) {
   return (
     <article className="flex min-w-0 flex-col gap-3 rounded-card bg-bg p-3 shadow-soft transition duration-300 hover:-translate-y-1 hover:shadow-lift sm:p-4">
       <div className="relative aspect-square w-full">
-        <Link href={`/product/${product.id}`} aria-label={product.name} tabIndex={-1}>
+        <Link href={productHref(product.id)} aria-label={product.name} tabIndex={-1}>
           <ProductImage product={product} sizes="(min-width: 1024px) 25vw, 50vw" className="size-full rounded-control" />
         </Link>
         <WishlistButton product={product} />
       </div>
       <h3 className="line-clamp-2 min-h-[2.5em] text-sm font-semibold text-text sm:text-base">
-        <Link href={`/product/${product.id}`} className="hover:text-primary">{product.name}</Link>
+        <Link href={productHref(product.id)} className="hover:text-primary">{product.name}</Link>
       </h3>
       <StarRating rating={product.rating} reviews={product.reviews} />
       <Price product={product} />

@@ -8,8 +8,11 @@ import ProductCard from "./ProductCard";
 import SectionHeading from "./SectionHeading";
 
 export default function OurProducts() {
-  const [active, setActive] = useState<ProductTag>("special");
+  const [picked, setPicked] = useState<ProductTag | null>(null);
   const { products } = useCatalog();
+  // Open on the first tab that has products, so the section never starts empty.
+  const active = picked ?? productTabs.find((t) => products.some((p) => p.tag === t.id))?.id;
+  if (!active) return null;
   const visible = products.filter((p) => p.tag === active).slice(0, 8);
 
   return (
@@ -26,7 +29,7 @@ export default function OurProducts() {
               id={`tab-${tab.id}`}
               aria-selected={selected}
               aria-controls="products-panel"
-              onClick={() => setActive(tab.id)}
+              onClick={() => setPicked(tab.id)}
               className={`min-h-11 rounded-full border-2 px-5 text-sm font-semibold transition sm:px-6 sm:text-base ${
                 selected
                   ? "border-primary bg-primary text-on-primary shadow-soft"

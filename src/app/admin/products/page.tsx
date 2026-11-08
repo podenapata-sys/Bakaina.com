@@ -9,7 +9,7 @@ import ProductImage from "@/components/ProductImage";
 import { useCatalog } from "@/context/CatalogContext";
 import { launchProducts } from "@/data/launchProducts";
 import { formatPrice } from "@/data/products";
-import { addMissingProducts, deleteProduct, fetchCategories, fetchProducts, newId } from "@/lib/db";
+import { deleteProduct, fetchCategories, fetchProducts, newId, replaceProducts } from "@/lib/db";
 import { totalStock } from "@/lib/variants";
 import type { Product } from "@/types";
 
@@ -31,17 +31,20 @@ export default function AdminProducts() {
 
   const [adding, setAdding] = useState(false);
   const [notice, setNotice] = useState("");
+  const isLaunch = (id: string) => launchProducts.some((l) => l.id === id);
   const missingLaunch = loading ? [] : launchProducts.filter((l) => !data.products.some((p) => p.id === l.id));
+  const others = loading ? [] : data.products.filter((p) => !isLaunch(p.id));
   const launchCategoriesReady = launchProducts.every((l) => data.categories.some((c) => c.id === l.categoryId));
 
-  async function onAddLaunch() {
+  async function onReplace() {
+    if (others.length && !window.confirm(`Delete ${others.length} other product(s) and keep only the ${launchProducts.length} store products? This cannot be undone.`)) return;
     setAdding(true);
     try {
-      const n = await addMissingProducts(launchProducts);
+      const r = await replaceProducts(launchProducts);
       await Promise.all([reload(), refresh()]);
-      setNotice(`Added ${n} products, already live. Edit each one: full name, price, stock and photos.`);
+      setNotice(`Removed ${r.removed} and added ${r.added} products. Edit each one: full name, price, stock and photos.`);
     } catch {
-      setNotice("Could not add the products. Check your connection and try again.");
+      setNotice("Could not update the products. Check your connection and try again.");
     } finally {
       setAdding(false);
     }
@@ -86,19 +89,19 @@ export default function AdminProducts() {
         </button>
       </div>
       {error && <p className="rounded-control bg-sale/10 p-4 text-sm text-sale">{error}</p>}
-      {missingLaunch.length > 0 && (
+      {(missingLaunch.length > 0 || others.length > 0) && (
         <div className={`${card} flex flex-wrap items-center justify-between gap-3`}>
           <p className="text-sm">
-            <strong>Add the {launchProducts.length} launch products</strong>{" "}
+            <strong>Use only the {launchProducts.length} store products</strong>{" "}
             <span className="text-muted">
-              ({missingLaunch.length} missing: hair care, body lotions, K-beauty).{" "}
+              (hair care, body lotions, K-beauty).{" "}
               {launchCategoriesReady
-                ? "They go live at once, showing ৳0 and Sold out until you add price, stock and photos."
+                ? `Removes the other ${others.length} product(s) and adds ${missingLaunch.length}. New ones show ৳0 and Sold out until you add price, stock and photos.`
                 : "First click “Use final categories” on the Categories page."}
             </span>
           </p>
-          <button type="button" disabled={adding || !launchCategoriesReady} onClick={onAddLaunch} className={btnPrimary}>
-            {adding ? "Adding…" : `Add ${missingLaunch.length} products`}
+          <button type="button" disabled={adding || !launchCategoriesReady} onClick={onReplace} className={btnPrimary}>
+            {adding ? "Working…" : "Replace all products"}
           </button>
         </div>
       )}

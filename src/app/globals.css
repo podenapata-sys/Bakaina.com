@@ -23,6 +23,9 @@
   --ui-border: #e7e5e0;
   --ui-sale: #d42a1e;
   --ui-star: #f2a516;
+  --ui-save: #2f7a4d; /* "you save" green */
+  --ui-tint: #eef2fa; /* light navy for offer box and trust badges */
+  --ui-tint-line: #c6d4ee;
 
   /* Shape */
   --ui-radius-card: 16px;
@@ -59,11 +62,15 @@
   --color-line: var(--ui-border);
   --color-sale: var(--ui-sale);
   --color-star: var(--ui-star);
+  --color-save: var(--ui-save);
+  --color-tint: var(--ui-tint);
+  --color-tint-line: var(--ui-tint-line);
   --radius-card: var(--ui-radius-card);
   --radius-control: var(--ui-radius-control);
   --shadow-soft: var(--ui-shadow-soft);
   --shadow-lift: var(--ui-shadow-lift);
-  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  /* Poppins has no Bangla letters, so the browser falls back to Noto Sans Bengali for them. */
+  --font-sans: var(--font-poppins), var(--font-bengali), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {

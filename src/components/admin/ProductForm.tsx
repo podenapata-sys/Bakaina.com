@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown, ImagePlus, Plus, Trash2, X } from "lucide-react";
 import { formatPrice, productTabs } from "@/data/products";
 import { fetchProductPrivate, saveProduct, saveProductPrivate, uploadProductImage } from "@/lib/db";
+import { bulkActive } from "@/lib/pricing";
 import { generateVariants, totalStock, usableOptions, youtubeId } from "@/lib/variants";
 import type { Category, Gradient, Product, ProductCondition, ProductTag } from "@/types";
 import { btnGhost, btnPrimary, input, label } from "./ui";
@@ -50,12 +51,18 @@ function normalize(p: Product): Product {
     seoDescription: opt(p.seoDescription),
     brand: opt(p.brand),
     details: p.details?.map((d) => ({ label: d.label.trim(), value: d.value.trim() })).filter((d) => d.label && d.value),
+    nameBn: opt(p.nameBn),
+    features: p.features?.map((f) => ({ label: f.label.trim(), text: f.text.trim() })).filter((f) => f.text),
+    faqs: p.faqs?.map((f) => ({ q: f.q.trim(), a: f.a.trim() })).filter((f) => f.q && f.a),
+    bulk: bulkActive(p.bulk) ? { minQty: Math.round(p.bulk.minQty), percent: p.bulk.percent } : undefined,
     weightKg: p.weightKg || undefined,
     dimensionsCm: hasDims ? dims : undefined,
     options: options.length ? options : undefined,
     variants,
   };
   if (next.details?.length === 0) next.details = undefined;
+  if (next.features?.length === 0) next.features = undefined;
+  if (next.faqs?.length === 0) next.faqs = undefined;
   if (variants) next.stock = totalStock(next);
   return next;
 }
@@ -121,6 +128,8 @@ export default function ProductForm({ initial, categories, onDone }: Props) {
   const variantMode = (p.variants?.length ?? 0) > 0;
   const profit = buyingPrice !== undefined && p.price > 0 ? p.price - buyingPrice : undefined;
   const details = p.details ?? [];
+  const features = p.features ?? [];
+  const faqs = p.faqs ?? [];
 
   return (
     <form
@@ -158,6 +167,12 @@ export default function ProductForm({ initial, categories, onDone }: Props) {
         <label className={label}>
           Product name
           <input required value={p.name} onChange={(e) => set("name", e.target.value)} className={input} />
+        </label>
+        <label className={label}>
+          <span>
+            Bangla name <span className="text-xs font-normal text-muted">second line under the name · optional</span>
+          </span>
+          <input lang="bn" placeholder="বাংলায় পণ্যের নাম" value={p.nameBn ?? ""} onChange={(e) => set("nameBn", e.target.value)} className={input} />
         </label>
         <label className={label}>
           <span>
@@ -283,6 +298,18 @@ export default function ProductForm({ initial, categories, onDone }: Props) {
             <input placeholder="e.g. 6 months" value={p.warranty ?? ""} onChange={(e) => set("warranty", e.target.value)} className={input} />
           </label>
         </div>
+        <fieldset className="flex flex-col gap-2">
+          <legend className="mb-1.5 text-sm font-medium text-text">
+            Bulk discount <span className="text-xs font-normal text-muted">optional · leave empty for none</span>
+          </legend>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            Buy
+            <input type="number" min={2} aria-label="Minimum quantity for bulk discount" placeholder="2" value={p.bulk?.minQty ?? ""} onChange={(e) => set("bulk", { minQty: Number(e.target.value), percent: p.bulk?.percent ?? 0 })} className={`${input} w-20`} />
+            or more, get
+            <input type="number" min={1} max={90} aria-label="Bulk discount percent" placeholder="20" value={p.bulk?.percent || ""} onChange={(e) => set("bulk", { minQty: p.bulk?.minQty ?? 2, percent: Number(e.target.value) })} className={`${input} w-20`} />
+            % off the whole order
+          </div>
+        </fieldset>
       </Section>
 
       <Section title="Product details" hint="Brand, model, material…">
@@ -303,6 +330,52 @@ export default function ProductForm({ initial, categories, onDone }: Props) {
         ))}
         <button type="button" onClick={() => set("details", [...details, { label: "", value: "" }])} className={`${btnGhost} w-fit`}>
           <Plus className="size-4" aria-hidden /> Add a detail row
+        </button>
+      </Section>
+
+      <Section title="Feature checklist" hint={features.length ? `${features.length} points` : "Tick-mark points on the product page"}>
+        {features.map((f, i) => (
+          <div key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] items-end gap-2">
+            <label className={label}>
+              Bold label
+              <input value={f.label} placeholder="Deep repair" onChange={(e) => set("features", features.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} className={input} />
+            </label>
+            <label className={label}>
+              Text
+              <input value={f.text} placeholder="Restores dry, damaged hair in one use." onChange={(e) => set("features", features.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))} className={input} />
+            </label>
+            <button type="button" aria-label={`Remove point ${f.label || i + 1}`} onClick={() => set("features", features.filter((_, j) => j !== i))} className="flex size-11 items-center justify-center rounded-control text-sale hover:bg-sale/10">
+              <Trash2 className="size-4" aria-hidden />
+            </button>
+          </div>
+        ))}
+        {features.length < 6 && (
+          <button type="button" onClick={() => set("features", [...features, { label: "", text: "" }])} className={`${btnGhost} w-fit`}>
+            <Plus className="size-4" aria-hidden /> Add a point
+          </button>
+        )}
+      </Section>
+
+      <Section title="FAQ" hint={faqs.length ? `${faqs.length} questions` : "Questions & answers on the product page"}>
+        {faqs.map((f, i) => (
+          <div key={i} className="flex flex-col gap-2 rounded-control bg-surface p-3">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
+              <label className={label}>
+                Question
+                <input value={f.q} placeholder="কীভাবে ব্যবহার করবেন?" onChange={(e) => set("faqs", faqs.map((x, j) => (j === i ? { ...x, q: e.target.value } : x)))} className={input} />
+              </label>
+              <button type="button" aria-label={`Remove question ${f.q || i + 1}`} onClick={() => set("faqs", faqs.filter((_, j) => j !== i))} className="flex size-11 items-center justify-center rounded-control text-sale hover:bg-sale/10">
+                <Trash2 className="size-4" aria-hidden />
+              </button>
+            </div>
+            <label className={label}>
+              Answer
+              <textarea rows={2} value={f.a} onChange={(e) => set("faqs", faqs.map((x, j) => (j === i ? { ...x, a: e.target.value } : x)))} className={`${input} h-auto py-2`} />
+            </label>
+          </div>
+        ))}
+        <button type="button" onClick={() => set("faqs", [...faqs, { q: "", a: "" }])} className={`${btnGhost} w-fit`}>
+          <Plus className="size-4" aria-hidden /> Add a question
         </button>
       </Section>
 

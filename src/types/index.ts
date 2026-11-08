@@ -39,6 +39,16 @@ export interface Product {
   /** Free-form rows such as Brand / Model / Material. */
   details?: ProductDetail[];
 
+  // ----- Product page extras -----
+  /** Second title line in Bangla, under the English name. */
+  nameBn?: string;
+  /** Tick-mark checklist under the description: a bold label, then the text. */
+  features?: ProductFeature[];
+  /** "Buy minQty or more, get percent off" on the whole line. */
+  bulk?: BulkDiscount;
+  /** Questions and answers in the accordion at the bottom of the product page. */
+  faqs?: ProductFaq[];
+
   // ----- SEO & shipping -----
   /** Google search snippet; not shown on the store. */
   seoDescription?: string;
@@ -59,6 +69,21 @@ export type ProductCondition = "new" | "used" | "refurbished";
 export interface ProductDetail {
   label: string;
   value: string;
+}
+
+export interface ProductFeature {
+  label: string;
+  text: string;
+}
+
+export interface BulkDiscount {
+  minQty: number;
+  percent: number;
+}
+
+export interface ProductFaq {
+  q: string;
+  a: string;
 }
 
 export interface ProductOption {

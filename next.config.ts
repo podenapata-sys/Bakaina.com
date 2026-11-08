@@ -1,17 +1,21 @@
 import type { NextConfig } from "next";
 
+/**
+ * The site is a static export (plain HTML/JS in `out/`) so it can be hosted on GitHub Pages; all store data
+ * loads in the browser from Firebase. GitHub Pages serves it under /Bakaina.com, which the deploy workflow
+ * passes in as NEXT_PUBLIC_BASE_PATH (empty for local runs).
+ */
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 const nextConfig: NextConfig = {
-  cacheComponents: true,
+  output: "export",
+  basePath,
+  trailingSlash: true,
   images: {
-    // Product photos uploaded from the admin dashboard: Cloudinary (default) or Firebase Storage.
-    remotePatterns: [
-      { protocol: "https", hostname: "firebasestorage.googleapis.com" },
-      { protocol: "https", hostname: "res.cloudinary.com" },
-    ],
-    // The local Storage emulator serves photos from 127.0.0.1, which the optimizer refuses.
-    unoptimized: process.env.NEXT_PUBLIC_FIREBASE_EMULATORS === "true",
+    // Static hosting has no image optimizer: Cloudinary resizes product photos, other images are served as-is.
+    loader: "custom",
+    loaderFile: "./src/lib/imageLoader.ts",
   },
-  partialPrefetching: true,
   turbopack: {
     rules: {
       "*.css": {

@@ -7,8 +7,8 @@ const quickLinks = ["Shop all", "New arrivals", "Best sellers", "Offers"];
 const serviceLinks = ["Track order", "Delivery information", "Returns & refunds", "Privacy policy", "Contact us"];
 const payments = ["bKash", "Nagad", "Visa", "Mastercard", "Cash on Delivery"];
 
-async function CopyrightYear() {
-  "use cache";
+/** Set when the static site is built (it rebuilds on every update). */
+function CopyrightYear() {
   return new Date().getFullYear();
 }
 

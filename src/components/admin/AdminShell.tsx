@@ -69,6 +69,8 @@ function loginErrorMessage(err: unknown): string {
       return "Login service error (invalid API key). Contact the developer.";
     case "auth/configuration-not-found":
       return "Firebase Authentication is not set up. Open Authentication → Get started in Firebase.";
+    case "auth/unauthorized-domain":
+      return `This website address isn't allowed yet. In Firebase → Authentication → Settings → Authorized domains, add ${window.location.hostname}.`;
     default:
       return `Sign-in failed (${code || "unknown error"}).`;
   }
